@@ -3,12 +3,87 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProfileFragment">
+    tools:context="com.example.myapplication.ProfileFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+<ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="This is the profile page" />
+        android:padding="16dp"
+        android:background="@android:color/white">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Profile Picture -->
+            <ImageView
+                android:id="@+id/profileImage"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/baseline_person_24"
+                android:scaleType="centerCrop"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/ic_launcher_background"
+                android:padding="4dp" />
+
+            <!-- User Name -->
+            <TextView
+                android:id="@+id/profileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="John Doe"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp"/>
+
+            <!-- User Email -->
+            <TextView
+                android:id="@+id/profileEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="johndoe@example.com"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                android:textColor="#888"/>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#ddd"
+                android:layout_marginVertical="24dp"/>
+
+            <!-- Options -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/editProfileBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Edit Profile"
+                    android:layout_marginBottom="12dp"/>
+
+                <Button
+                    android:id="@+id/paymentBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Payment"/>
+
+                <Button
+                    android:id="@+id/logoutBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:layout_marginTop="24dp"
+                    android:backgroundTint="@android:color/holo_red_light"
+                    android:textColor="@android:color/white"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 </FrameLayout>
