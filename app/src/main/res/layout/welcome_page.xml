@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="#161823">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Taxi App"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"
+        android:textColor="#FE2C55"/>
+
+
+    <ImageView
+        android:id="@+id/ivTaxi"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/taxi_pic"
+        android:scaleType="centerCrop"
+        android:layout_marginBottom="12dp" />
+
+
+    <TextView
+        android:id="@+id/tvSubTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your Ride, Your Way"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:textColor="#FE2C55" />
+
+
+    <TextView
+        android:id="@+id/tvSlogan1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fast. Safe. Reliable."
+        android:textColor="#7A7A7A"
+        android:textSize="16sp"
+        android:layout_marginBottom="4dp" />
+
+
+    <TextView
+        android:id="@+id/tvSlogan2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Anywhere, Anytime."
+        android:textSize="16sp"
+        android:textColor="#7A7A7A"
+        android:layout_marginBottom="20dp" />
+
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:backgroundTint="#FE2C55"
+        android:textColor="#FE2C55"
+        android:layout_marginBottom="12dp" />
+
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:backgroundTint="#383636"
+        android:textColor="#FE2C55" />
+
+</LinearLayout>
