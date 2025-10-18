@@ -47,7 +47,7 @@ public class ProfileFragment extends Fragment {
         // 🔑 1. Get references to the buttons from XML
         Button btnSettings = view.findViewById(R.id.settingsBtn);
         Button btnEditProfile = view.findViewById(R.id.editProfileBtn);
-
+        Button btnAbout = view.findViewById(R.id.aboutBtn);
         // 🔑 2. Set click listeners
         btnSettings.setOnClickListener(v -> {
             // Open SettingsActivity when clicked
@@ -58,6 +58,11 @@ public class ProfileFragment extends Fragment {
         btnEditProfile.setOnClickListener(v -> {
             // Open EditProfileActivity when clicked
             Intent intent = new Intent(getActivity(), EditProfileActivity.class);
+            startActivity(intent);
+        });
+
+        btnAbout.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), AboutActivity.class);
             startActivity(intent);
         });
 

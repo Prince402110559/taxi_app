@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#161823"
+    android:background="@color/backgroundColor"
     android:gravity="center"
 
     android:orientation="vertical"
@@ -18,13 +18,14 @@
         android:layout_height="wrap_content"
         android:text="Rank Mate"
         android:layout_marginTop="16dp"
-        android:textColor="#FE2C55"
+        android:textColor="@color/headingcolor"
         android:textSize="28sp" />
 
-    <View
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.02" />
+        android:layout_height="149dp"
+        app:srcCompat="@drawable/taxi_pic" />
 
     <TextView
         android:id="@+id/subTitle"
@@ -32,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:text="Log in to Account"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/headingcolor"
         android:textSize="28sp" />
 
     <View
@@ -45,21 +46,22 @@
         android:layout_width="wrap_content"
         android:text="Enter your email to sign up for free"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"/>
+        android:textColor="@color/textColor"/>
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.003"/>
+
     <EditText
         android:id="@+id/emailEnter"
-        android:hint="email@domain.com"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:backgroundColor="#161823"
-        android:padding="12dp"
         android:background="@drawable/text_field"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#FFFFFF" />
+        android:hint="email@domain.com"
+        android:padding="12dp"
+        android:textColor="@color/headingcolor"
+        android:textColorHint="@color/headingcolor" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -69,11 +71,10 @@
         android:hint="Password"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:backgroundColor="#161823"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/headingcolor"
         android:background="@drawable/text_field"
         android:layout_marginBottom="12dp"
-        android:textColorHint="#FFFFFF"
+        android:textColorHint="@color/headingcolor"
         android:padding="12dp"
         />
 
@@ -84,10 +85,11 @@
         android:layout_height="wrap_content"
         android:text="Login"
         android:backgroundTint="#383636"
-        android:textColor="#FE2C55" />
+        android:textColor="@color/headingcolor" />
     <TextView
         android:layout_width="wrap_content"
         android:text="________________________or__________________________"
+        android:textColor="@color/textColor"
         android:layout_height="wrap_content"/>
     <Button
         android:id="@+id/Google"
