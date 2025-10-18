@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
+            android:name=".AboutActivity"
+            android:exported="false" />
+        <activity
             android:name=".EditProfileActivity"
             android:exported="false"
             android:theme="@style/Theme.MyApplication" />
@@ -24,7 +27,6 @@
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true">
