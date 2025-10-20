@@ -1,21 +1,23 @@
 package com.example.myapplication;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.widget.SearchView; // ✅ Correct import
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
@@ -32,7 +34,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // Initialize views
@@ -41,23 +42,32 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         profileImage = view.findViewById(R.id.profileImage);
         searchBar = view.findViewById(R.id.searchBar);
 
-        // Initialize the map view
+        // Initialize the map
         if (mapView != null) {
             mapView.onCreate(savedInstanceState);
             mapView.getMapAsync(this);
         }
 
-        // Menu button click event
+        // 🔹 Safely customize SearchView text color
+        EditText searchEditText = searchBar.findViewById(androidx.appcompat.R.id.search_src_text);
+        if (searchEditText != null) {
+            searchEditText.setTextColor(Color.BLACK);
+            searchEditText.setHintTextColor(Color.GRAY);
+        }
+
+        searchBar.setQueryHint("Search for a place...");
+
+        // Menu button click
         menuButton.setOnClickListener(v ->
                 Toast.makeText(getContext(), "Menu clicked", Toast.LENGTH_SHORT).show()
         );
 
-        // Profile image click event
+        // Profile button click
         profileImage.setOnClickListener(v ->
                 Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show()
         );
 
-        // Search bar text listener
+        // Search actions
         searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -67,7 +77,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // Handle live search suggestions here if needed
                 return false;
             }
         });
@@ -75,21 +84,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
-    // Called when map is ready
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
-        MapsInitializer.initialize(requireContext());
-        googleMap = map;
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setCompassEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-        // Optionally set a default location or marker here
-        // LatLng location = new LatLng(-26.2041, 28.0473); // Johannesburg example
-        // googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10));
+        try {
+            MapsInitializer.initialize(requireContext());
+            googleMap = map;
+            googleMap.getUiSettings().setZoomControlsEnabled(true);
+            googleMap.getUiSettings().setCompassEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // Lifecycle methods for MapView
     @Override
     public void onResume() {
         super.onResume();
