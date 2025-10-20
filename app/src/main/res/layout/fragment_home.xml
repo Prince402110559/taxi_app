@@ -1,76 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".HomeFragment"
-    android:background="@color/backgroundColor">
+    tools:context=".HomeFragment">
 
-    <!-- Header -->
-    <LinearLayout
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#1e1e1e"
-        android:gravity="center_vertical"
-        android:padding="10dp">
+        android:layout_height="match_parent"
+        android:text="This is the home page" />
 
-        <ImageView
-            android:id="@+id/menuButton"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/ic_menu_list"
-            android:contentDescription="Menu"
-            android:clickable="true"
-            android:focusable="true"/>
-
-        <TextView
-            android:text="Taxi Finder"
-            android:textColor="#ffffff"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
-
-        <ImageView
-            android:id="@+id/profileImage"
-            android:src="@drawable/ic_person"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:scaleType="centerCrop"
-            android:layout_gravity="end"
-            android:layout_marginEnd="8dp"/>
-    </LinearLayout>
-
-    <!--it contains the map view and search ber-->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <!--map view-->
-        <com.google.android.gms.maps.MapView
-            android:id="@+id/mapView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <!-- Search Bar -->
-        <SearchView
-            android:id="@+id/searchBar"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_margin="16dp"
-            android:background="@drawable/rounded_search_background"
-            android:queryHint="Search..."
-            android:iconifiedByDefault="false"
-            android:elevation="4dp"
-            android:textColorHint="#888888"/>
-
-    </FrameLayout>
-
-</LinearLayout>
+</FrameLayout>
