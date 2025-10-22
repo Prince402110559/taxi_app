@@ -17,7 +17,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Rank Mate"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:textColor="@color/headingcolor"
         android:textSize="28sp" />
 
@@ -39,7 +39,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.003"/>
+        android:layout_weight="0.0005"/>
 
     <TextView
         android:id="@+id/subtext"
@@ -50,7 +50,8 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.003"/>
+        android:layout_weight="0.0005
+"/>
 
     <EditText
         android:id="@+id/emailEnter"
@@ -65,7 +66,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.003"/>
+        android:layout_weight="0.0005"/>
     <EditText
         android:id="@+id/passwords"
         android:hint="Password"
@@ -110,7 +111,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="3dp"
+        android:layout_marginBottom="100dp"
         />
 
 </LinearLayout>

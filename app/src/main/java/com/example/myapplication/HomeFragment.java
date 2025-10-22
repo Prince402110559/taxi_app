@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -13,11 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.SearchView; // ✅ Correct import
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+
+import com.example.myapplication.databinding.ActivityMainBinding;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
@@ -25,6 +31,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap googleMap;
     private ImageView menuButton, profileImage;
     private SearchView searchBar;
+    public ActivityMainBinding binding;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -58,14 +65,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         searchBar.setQueryHint("Search for a place...");
 
         // Menu button click
-        menuButton.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Menu clicked", Toast.LENGTH_SHORT).show()
-        );
+        menuButton.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Menu clicked", Toast.LENGTH_SHORT).show();
+        });
 
         // Profile button click
-        profileImage.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show()
-        );
+        BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottomNavigationView);
+        profileImage.setOnClickListener(v ->{
+                Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
+            bottomNav.setSelectedItemId(R.id.profile);
+
+        });
+
+
 
         // Search actions
         searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {

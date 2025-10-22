@@ -1,7 +1,11 @@
 package com.example.myapplication;
 
+import static android.app.PendingIntent.getActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,16 +24,16 @@ public class SettingsActivity extends AppCompatActivity {
 
         setTitle("Settings");
 
-        Button logout = findViewById(R.id.logoutBtn);
+        Button logout = findViewById(R.id.logoutBtnSettings);
 
         logout.setOnClickListener(v ->{
 
-            // TODO: 2025/10/17 we need to add a logout function 
+            // TODO: 2025/10/17 we need to add a logout function
+            Intent intent = new Intent(SettingsActivity.this, WelcomePage.class);
+            Toast.makeText(SettingsActivity.this, "logout button preseddd", Toast.LENGTH_SHORT).show();
+            startActivity(intent);
         });
 
-        // Example: if you have a switch for notifications
-        // binding.switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-        //     // Save settings here
-        // });
+
     }
 }

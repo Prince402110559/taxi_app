@@ -4,7 +4,9 @@
     android:id="@+id/homeFragmentRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeFragment">
+    tools:context=".HomeFragment"
+    android:layout_marginTop="30dp">
+
 
     <!-- MapView -->
     <com.google.android.gms.maps.MapView
@@ -19,6 +21,7 @@
         android:layout_height="56dp"
         android:padding="10dp"
         android:gravity="center_vertical"
+
         android:background="@color/backgroundColor"
         android:layout_gravity="top">
 
@@ -26,7 +29,7 @@
             android:id="@+id/menuButton"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:src="@drawable/ic_menu_list"
+            android:src="@drawable/taxi_pic"
             android:contentDescription="Menu"
             android:clickable="true"
             android:focusable="true" />
@@ -58,7 +61,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="65dp"
-        android:background="@drawable/rounded_search_background"
         android:elevation="6dp"
         android:iconifiedByDefault="false"
         android:queryHint="Search..." />

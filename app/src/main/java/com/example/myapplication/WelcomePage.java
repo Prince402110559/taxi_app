@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -35,12 +36,16 @@ public class WelcomePage extends AppCompatActivity {
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(WelcomePage.this, RegisterPage.class);
+                startActivity(intent);
                 Toast.makeText(WelcomePage.this, "Register button pressed!", Toast.LENGTH_SHORT).show();
             }
         });
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(WelcomePage.this, LoginPage.class);
+                startActivity(intent);
                 Toast.makeText(WelcomePage.this, "Login button pressed!", Toast.LENGTH_SHORT).show();
             }
         });

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class ProfileFragment extends Fragment {
 
@@ -48,6 +49,7 @@ public class ProfileFragment extends Fragment {
         Button btnSettings = view.findViewById(R.id.settingsBtn);
         Button btnEditProfile = view.findViewById(R.id.editProfileBtn);
         Button btnAbout = view.findViewById(R.id.aboutBtn);
+        Button btnLogout = view.findViewById(R.id.logoutBtn);
         // 🔑 2. Set click listeners
         btnSettings.setOnClickListener(v -> {
             // Open SettingsActivity when clicked
@@ -63,6 +65,12 @@ public class ProfileFragment extends Fragment {
 
         btnAbout.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), AboutActivity.class);
+            startActivity(intent);
+        });
+
+        btnLogout.setOnClickListener(v ->{
+            Intent intent = new Intent(getActivity(), WelcomePage.class);
+            Toast.makeText(getActivity(), "logout button preseddd", Toast.LENGTH_SHORT).show();
             startActivity(intent);
         });
 
