@@ -1,0 +1,20 @@
+{
+  "name": "Light",
+  "version": 1,
+  "features": [
+    { "featureType": "all", "elementType": "labels.text.fill",
+      "stylers": [{ "color": "#424242" }] },
+    { "featureType": "all", "elementType": "labels.text.stroke",
+      "stylers": [{ "color": "#ffffff" }, { "weight": 3 }] },
+    { "featureType": "road", "elementType": "geometry",
+      "stylers": [{ "color": "#e0e0e0" }] },
+    { "featureType": "water", "elementType": "geometry",
+      "stylers": [{ "color": "#cfe8ff" }] },
+    { "featureType": "landscape", "elementType": "geometry",
+      "stylers": [{ "color": "#f5f5f5" }] },
+    { "featureType": "poi", "elementType": "geometry",
+      "stylers": [{ "color": "#eeeeee" }] },
+    { "featureType": "transit", "elementType": "geometry",
+      "stylers": [{ "color": "#eeeeee" }] }
+  ]
+}
