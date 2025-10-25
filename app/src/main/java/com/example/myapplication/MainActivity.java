@@ -33,10 +33,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new HomeFragment();
             } else if (itemId == R.id.profile) {
                 selectedFragment = new ProfileFragment();
-            } else if (itemId == R.id.forum) {
-                selectedFragment = new ForumFragment();
             }
-
             if (selectedFragment != null) {
                 replacefragment(selectedFragment);
             }
