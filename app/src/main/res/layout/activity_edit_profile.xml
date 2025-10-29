@@ -32,20 +32,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Change Photo Button -->
-    <Button
-        android:id="@+id/btnChangePhoto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@android:color/transparent"
-        android:text="Change Photo"
-        android:textColor="@color/headingcolor"
-        android:textSize="20sp"
-        app:iconSize="22dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imgProfile" />
 
     <!-- Full Name -->
     <EditText
@@ -54,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:backgroundTint="@color/headingcolor"
-        android:hint="Full Name"
+        android:hint="First Name"
         android:inputType="textPersonName"
         android:padding="12dp"
         android:textColor="@color/textColor"
@@ -62,17 +48,16 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnChangePhoto" />
+        app:layout_constraintTop_toBottomOf="@id/imgProfile" />
 
-    <!-- Email -->
     <EditText
-        android:id="@+id/etEmail"
+        android:id="@+id/etSurname"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:backgroundTint="@color/headingcolor"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
+        android:hint="Last Name"
+        android:inputType="textPersonName"
         android:padding="12dp"
         android:textColor="@color/textColor"
         android:textColorHint="@color/textColor"
@@ -80,23 +65,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/etName" />
+    <!-- Email -->
 
-    <!-- Phone -->
-    <EditText
-        android:id="@+id/etPhone"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="@color/headingcolor"
-        android:hint="Phone Number"
-        android:inputType="phone"
-        android:padding="12dp"
-        android:textColor="@color/textColor"
-        android:textColorHint="@color/textColor"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etEmail" />
 
     <!-- Save Changes Button -->
     <Button
@@ -110,5 +80,5 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/etPhone" />
+        app:layout_constraintTop_toBottomOf="@id/etSurname" />
 </androidx.constraintlayout.widget.ConstraintLayout>

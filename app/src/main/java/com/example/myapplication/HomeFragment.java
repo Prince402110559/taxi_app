@@ -1,23 +1,29 @@
 package com.example.myapplication;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.SearchView; // ✅ Correct import
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.myapplication.databinding.ActivityMainBinding;
@@ -34,16 +40,26 @@ import com.google.android.gms.location.LocationServices;
 import android.content.res.Configuration;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     private MapView mapView;
     private GoogleMap googleMap;
     private ImageView menuButton, profileImage;
-    private SearchView searchBar;
+    private SearchView searchBar, dropSearchView;
     public ActivityMainBinding binding;
     private static final int REQ_LOCATION = 42;
     private FusedLocationProviderClient fusedClient;
 
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public HomeFragment() {
         // Required empty public constructor
@@ -60,6 +76,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         menuButton = view.findViewById(R.id.menuButton);
         profileImage = view.findViewById(R.id.profileImage);
         searchBar = view.findViewById(R.id.searchBar);
+        dropSearchView = view.findViewById(R.id.dropSearchView);
 
         // Initialize the map
         if (mapView != null) {
@@ -74,7 +91,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             searchEditText.setHintTextColor(Color.GRAY);
         }
 
-        searchBar.setQueryHint("Search for a place...");
+
 
         // Menu button click
         menuButton.setOnClickListener(v -> {
@@ -90,13 +107,46 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         });
 
 
+        searchBar.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                getUserCurrentAddress(address -> searchBar.setQuery(address, false));
+            }
+        });
 
-        // Search actions
+        //this is where we handle the users input
         searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                Toast.makeText(getContext(), "Searching for: " + query, Toast.LENGTH_SHORT).show();
+            public boolean onQueryTextSubmit(String start) {
+                String drop = dropSearchView.getQuery().toString();
+                if (!start.isEmpty() && !drop.isEmpty()) {
+                    findAndShowClosestRanks(start, drop);
+                }else {
+                    Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
+
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
                 return false;
+            }
+        });
+
+
+
+        // we also use this one to handle user input
+        //we have  2 incase the user presses submit while on either of the searchviews
+        dropSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String drop) {
+                String start = searchBar.getQuery().toString();
+                if (!start.isEmpty() && !drop.isEmpty()) {
+                    findAndShowClosestRanks(start, drop);
+                } else {
+                    Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
+                }
+                return true;
             }
 
             @Override
@@ -211,6 +261,69 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             // fall back silently
         }
     }
+
+    private void getUserCurrentAddress(Consumer<String> callback) {
+        if (!hasLocationPermission()) {
+            callback.accept("");
+            return;
+        }
+        fusedClient.getLastLocation().addOnSuccessListener(loc -> {
+            if (loc != null) {
+                Geocoder geocoder = new Geocoder(requireContext());
+                try {
+                    List<Address> addresses = geocoder.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        callback.accept(addresses.get(0).getAddressLine(0));
+                        return;
+                    }
+                } catch (IOException ignored) { }
+            }
+            callback.accept("");
+        });
+    }
+
+
+
+    private void findAndShowClosestRanks(String start, String drop) {
+        db.collection("ranks")
+                .get()
+                .addOnSuccessListener(query -> {
+                    List<String> rankDisplayList = new ArrayList<>();
+                    List<String> rideTimes = new ArrayList<>();
+                    for (DocumentSnapshot doc : query) {
+                        String name = doc.getString("name");
+                        String price = doc.getString("price");
+                        String rideTime = doc.getString("rideTime");
+
+                        rankDisplayList.add(name + " - Price: " + price);
+                        rideTimes.add(rideTime);
+                    }
+
+                    showBottomSheet(rankDisplayList, rideTimes);
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to fetch ranks", Toast.LENGTH_SHORT).show());
+    }
+
+    private void showBottomSheet(List<String> rides, List<String> times) {
+        View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_ride_options, null);
+        ListView listView = sheetView.findViewById(R.id.listView);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, rides);
+
+        listView.setAdapter(adapter);
+
+        BottomSheetDialog dialog = new BottomSheetDialog(getContext());
+        dialog.setContentView(sheetView);
+        dialog.show();
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Toast.makeText(getContext(), "Estimated ride time: " + times.get(position), Toast.LENGTH_LONG).show();
+            dialog.dismiss();
+        });
+    }
+
+
+
+
 
 
 

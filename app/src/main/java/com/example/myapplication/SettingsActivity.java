@@ -10,10 +10,13 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.databinding.ActivitySettingsBinding;
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class SettingsActivity extends AppCompatActivity {
 
     private ActivitySettingsBinding binding;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,11 +30,9 @@ public class SettingsActivity extends AppCompatActivity {
         Button logout = findViewById(R.id.logoutBtnSettings);
 
         logout.setOnClickListener(v ->{
-
-            // TODO: 2025/10/17 we need to add a logout function
+            FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(SettingsActivity.this, WelcomePage.class);
-            Toast.makeText(SettingsActivity.this, "logout button preseddd", Toast.LENGTH_SHORT).show();
-            startActivity(intent);
+            finish();
         });
 
 

@@ -44,7 +44,7 @@
     <TextView
         android:id="@+id/subtext"
         android:layout_width="wrap_content"
-        android:text="Enter your email to sign up for free"
+        android:text="Enter your email to sign in"
         android:layout_height="wrap_content"
         android:textColor="@color/textColor"/>
     <View
@@ -54,7 +54,7 @@
 "/>
 
     <EditText
-        android:id="@+id/emailEnter"
+        android:id="@+id/enterEmail"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
         android:background="@drawable/text_field"
@@ -68,7 +68,7 @@
         android:layout_height="0dp"
         android:layout_weight="0.0005"/>
     <EditText
-        android:id="@+id/passwords"
+        android:id="@+id/enterPassword"
         android:hint="Password"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
@@ -80,38 +80,38 @@
         />
 
     <!-- Login Button -->
+
     <Button
         android:id="@+id/btnLogin"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:text="Login"
         android:backgroundTint="#383636"
+        android:text="Login"
         android:textColor="@color/headingcolor" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btnGoogleLogin"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:text="Continue with google"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:text="________________________or__________________________"
         android:textColor="@color/textColor"
         android:layout_height="wrap_content"/>
-    <Button
-        android:id="@+id/Google"
-        android:layout_width="260dp"
-        android:layout_height="wrap_content"
-        android:text="Continue with Google"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#383636"
-        android:layout_marginBottom="5dp" />
 
     <Button
-        android:id="@+id/Apple"
+        android:id="@+id/btnRegister"
         android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:text="Continue with Apple"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#FE2C55"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="10dp"
         android:layout_marginBottom="100dp"
-        />
+        android:backgroundTint="@color/headingcolor"
+        android:text="Register"
+        android:textColor="@color/textColor" />
+
 
 </LinearLayout>

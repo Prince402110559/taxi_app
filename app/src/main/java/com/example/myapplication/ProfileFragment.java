@@ -7,12 +7,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.TextView;
+
+
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
 
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+
+    private TextView email, name, surname;
 
     private String mParam1;
     private String mParam2;
@@ -50,6 +58,11 @@ public class ProfileFragment extends Fragment {
         Button btnEditProfile = view.findViewById(R.id.editProfileBtn);
         Button btnAbout = view.findViewById(R.id.aboutBtn);
         Button btnLogout = view.findViewById(R.id.logoutBtn);
+         name = view.findViewById(R.id.profileName);
+         email = view.findViewById(R.id.profileEmail);
+         surname = view.findViewById(R.id.LastName);
+
+
         // 🔑 2. Set click listeners
         btnSettings.setOnClickListener(v -> {
             // Open SettingsActivity when clicked
@@ -69,11 +82,51 @@ public class ProfileFragment extends Fragment {
         });
 
         btnLogout.setOnClickListener(v ->{
-            Intent intent = new Intent(getActivity(), WelcomePage.class);
-            Toast.makeText(getActivity(), "logout button preseddd", Toast.LENGTH_SHORT).show();
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(this.getActivity(), WelcomePage.class);
             startActivity(intent);
         });
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null){
+            String userId = user.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String userEmail = documentSnapshot.getString("email");
+                            String firstName = documentSnapshot.getString("firstName");
+                            String lastName = documentSnapshot.getString("lastName");
+                            load(firstName,userEmail,lastName);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle error
+                    });
+
+        }
 
         return view;
     }
+    private void load( String nm, String em, String lm) {
+        TextView nameView = name;
+        TextView emailView = email;
+        TextView surnameView = surname;
+
+        if(nm != null && !nm.isEmpty()){
+            nameView.setText(nm);
+        }else{
+            nameView.setText("john Doe");
+        }
+        if(em!= null && !em.isEmpty()){
+            emailView.setText(em);
+        }else{
+            emailView.setText("johnDoe@example.com");
+        }if(lm != null && !lm.isEmpty()){
+            surnameView.setText(lm);
+        }else{
+            surnameView.setText("Doe");
+        }
+    }
+
 }
