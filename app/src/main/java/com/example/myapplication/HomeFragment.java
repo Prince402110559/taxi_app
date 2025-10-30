@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +43,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
@@ -77,6 +79,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         profileImage = view.findViewById(R.id.profileImage);
         searchBar = view.findViewById(R.id.searchBar);
         dropSearchView = view.findViewById(R.id.dropSearchView);
+
 
         // Initialize the map
         if (mapView != null) {
@@ -119,7 +122,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String start) {
                 String drop = dropSearchView.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowClosestRanks(start, drop);
+                    findAndShowRidesToDestination( drop);
                 }else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
 
@@ -142,7 +145,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String drop) {
                 String start = searchBar.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowClosestRanks(start, drop);
+                    findAndShowRidesToDestination( drop);
                 } else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
                 }
@@ -284,31 +287,97 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
 
 
-    private void findAndShowClosestRanks(String start, String drop) {
-        db.collection("ranks")
+    private void findAndShowRidesToDestination(String endRankName) {
+                // Normalize user input for case-insensitive matching
+
+        String normalized = endRankName.trim().toLowerCase();
+        Toast.makeText(getContext(), "Searching destination: " + normalized, Toast.LENGTH_SHORT).show();
+
+        db.collection("rank")
+                .whereEqualTo("name_lowercase", normalized)
                 .get()
-                .addOnSuccessListener(query -> {
-                    List<String> rankDisplayList = new ArrayList<>();
-                    List<String> rideTimes = new ArrayList<>();
-                    for (DocumentSnapshot doc : query) {
-                        String name = doc.getString("name");
-                        String price = doc.getString("price");
-                        String rideTime = doc.getString("rideTime");
-
-                        rankDisplayList.add(name + " - Price: " + price);
-                        rideTimes.add(rideTime);
+                .addOnSuccessListener(endQuery -> {
+                        if (endQuery.isEmpty()) {
+                        Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_LONG).show();
+                        return;
                     }
+                    String endRankId = endQuery.getDocuments().get(0).getId();
+                    String destinationRankName = endQuery.getDocuments().get(0).getString("name");
 
-                    showBottomSheet(rankDisplayList, rideTimes);
+
+                    db.collection("route")
+                            .whereEqualTo("endRankId", endRankId)
+                            .get()
+                            .addOnSuccessListener(routeQuery -> {
+
+                                if (routeQuery.isEmpty()) {
+                                    Toast.makeText(getContext(), "No rides available to this destination", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                List<String> startRankIds = new ArrayList<>();
+                                List<Double> prices = new ArrayList<>();
+
+                                for (DocumentSnapshot routeDoc : routeQuery) {
+                                    String startId = routeDoc.getString("startRankId");
+                                    Double price = routeDoc.getDouble("price");
+
+                                    if (startId != null && price != null) {
+                                        startRankIds.add(startId);
+
+                                        prices.add(price);
+                                    }
+                                }
+
+                                if (startRankIds.isEmpty()) {
+                                    Toast.makeText(getContext(), "No valid start ranks found", Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+
+                                List<String> startridesDisplayList = new ArrayList<>();
+                                List<String> ridePricesList = new ArrayList<>();
+
+                                db.collection("rank")
+                                        .whereIn(FieldPath.documentId(), startRankIds)
+                                        .get()
+                                        .addOnSuccessListener(startRanksQuery -> {
+                                            for (DocumentSnapshot doc : startRanksQuery) {
+                                                String rankName = doc.getString("name");
+                                                int idx = startRankIds.indexOf(doc.getId());
+                                                double price = prices.get(idx);
+
+
+
+                                                startridesDisplayList.add(rankName);
+                                                ridePricesList.add(String.format("Price: R%.2f", price));
+                                            }
+
+                                            showBottomSheetWithPrices(startridesDisplayList,endRankName, ridePricesList);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(getContext(), "Failed loading start ranks: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed loading routes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to fetch ranks", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed loading destination ranks: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
-    private void showBottomSheet(List<String> rides, List<String> times) {
+
+    private void showBottomSheetWithPrices(List<String> start ,String destination, List<String> prices) {
         View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_ride_options, null);
         ListView listView = sheetView.findViewById(R.id.listView);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, rides);
 
+        List<String> displayList = new ArrayList<>();
+        for (int i = 0; i < start.size(); i++) {
+            displayList.add(start.get(i) + " → " + destination + " \n" + prices.get(i));
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, displayList);
         listView.setAdapter(adapter);
 
         BottomSheetDialog dialog = new BottomSheetDialog(getContext());
@@ -316,10 +385,15 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         dialog.show();
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(getContext(), "Estimated ride time: " + times.get(position), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "You selected: " + displayList.get(position), Toast.LENGTH_LONG).show();
             dialog.dismiss();
+            // TODO: 2025/10/30 we need to add google maps stuff to show the route on the map 
         });
     }
+
+
+
+
 
 
 
