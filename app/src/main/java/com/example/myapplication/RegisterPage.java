@@ -76,9 +76,23 @@ public class RegisterPage extends AppCompatActivity{
                     AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
                     auth.signInWithCredential(cred)
                             .addOnSuccessListener(r -> {
-                                toast("Registered with Google!");
-                                startActivity(new Intent(this, MainActivity.class));
-                                finish();
+                                FirebaseUser user = auth.getCurrentUser();
+                                if (user!= null) {
+                                    String uid = user.getUid();
+                                    String fName = account.getGivenName(); // Gets first name from Google
+                                    String lName = account.getFamilyName(); // Gets last name from Google
+                                    String email = account.getEmail();
+
+                                    // If name info is missing, set to empty or defaults
+                                    if (fName == null) fName = "";
+                                    if (lName == null) lName = "";
+
+                                    saveUserData(uid, fName, lName, email);
+
+                                    toast("Registered with Google!");
+                                    startActivity(new Intent(this, MainActivity.class));
+                                    finish();
+                                }
                             })
                             .addOnFailureListener(e -> toast("Google sign-in failed: " + e.getMessage()));
                 } catch (ApiException e) { toast("Google sign-in canceled"); }

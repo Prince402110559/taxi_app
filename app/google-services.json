@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:891555803625:android:e90c640540f7a16d16db78",
+        "mobilesdk_app_id": "1:891555803625:android:68a8c8eadb0e38d316db78",
         "android_client_info": {
-          "package_name": "com.group23.taxiapp"
+          "package_name": "com.example.myapplication"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "891555803625-11vcmco81a283fcssb3sf9g5qktukbqq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.myapplication",
+            "certificate_hash": "d004c1e9280ca26241e03d62e58d4f3f7bb69bb5"
+          }
+        },
         {
           "client_id": "891555803625-8uu3iu8oaldmqsd0eqduf2618a6gok6l.apps.googleusercontent.com",
           "client_type": 3

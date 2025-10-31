@@ -20,12 +20,18 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class LoginPage extends AppCompatActivity {
@@ -58,21 +64,43 @@ public class LoginPage extends AppCompatActivity {
                  .build();
          gsc = GoogleSignIn.getClient(this, gso);
          googleLauncher= registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result -> {
-             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                 try {
-                     GoogleSignInAccount account = task.getResult(ApiException.class);
-                     AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-                     auth.signInWithCredential(cred)
-                             .addOnSuccessListener(r -> {
-                                 toast("Signed in with Google!");
-                                 startActivity(new Intent(this, MainActivity.class));
-                                 finish();
-                             })
-                             .addOnFailureListener(e -> toast("Google sign-in failed: " + e.getMessage()));
-                 } catch (ApiException e) { toast("Google sign-in canceled"); }
-             }
-         });
+                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                         try {
+                             GoogleSignInAccount account = task.getResult(ApiException.class);
+                             AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                             auth.signInWithCredential(cred)
+                                     .addOnSuccessListener(r -> {
+                                         FirebaseUser user = auth.getCurrentUser();
+                                         if (user == null) {
+                                             toast("Google sign-in failed");
+                                             return;
+                                         }
+                                         String uid = user.getUid();
+                                         String fName = account.getGivenName() != null ? account.getGivenName() : "";
+                                         String lName = account.getFamilyName() != null ? account.getFamilyName() : "";
+                                         String email = user.getEmail();
+
+                                         Map<String, Object> userData = new HashMap<>();
+                                         userData.put("email", email);
+                                         userData.put("firstName", fName);
+                                         userData.put("lastName", lName);
+
+                                         FirebaseFirestore.getInstance().collection("users").document(uid)
+                                                 .set(userData)
+                                                 .addOnSuccessListener(aVoid -> {
+                                                     toast("Signed in with Google!");
+                                                     startActivity(new Intent(this, MainActivity.class));
+                                                     finish();
+
+                                                 }).addOnFailureListener(e -> toast("Failed to save user info: " + e.getMessage()));
+                                     })
+                                     .addOnFailureListener(e -> toast("Google sign-in failed: " + e.getMessage()));
+                         } catch (ApiException e){
+                             toast("Google sign-in canceled");
+                         }
+                     }
+                 });
 
          findViewById(R.id.btnGoogleLogin).setOnClickListener(v -> googleLauncher.launch(gsc.getSignInIntent()));
 

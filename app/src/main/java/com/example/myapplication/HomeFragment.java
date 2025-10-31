@@ -80,6 +80,22 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         searchBar = view.findViewById(R.id.searchBar);
         dropSearchView = view.findViewById(R.id.dropSearchView);
 
+        searchBar.setQueryHint("Choose Start Location");
+        dropSearchView.setQueryHint("Choose Destination");
+        searchBar.setIconified(false);
+        dropSearchView.setIconified(false);
+
+        /*
+        searchBar.setOnClickListener(v -> {
+             // Expands search view
+            searchBar.requestFocus();
+        });
+        dropSearchView.setOnClickListener(v -> {
+             // Expands search view
+            dropSearchView.requestFocus();
+        });*/
+
+
 
         // Initialize the map
         if (mapView != null) {
@@ -87,12 +103,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             mapView.getMapAsync(this);
         }
 
-        // 🔹 Safely customize SearchView text color
-        EditText searchEditText = searchBar.findViewById(androidx.appcompat.R.id.search_src_text);
-        if (searchEditText != null) {
-            searchEditText.setTextColor(Color.BLACK);
-            searchEditText.setHintTextColor(Color.GRAY);
-        }
+
+
+
 
 
 
