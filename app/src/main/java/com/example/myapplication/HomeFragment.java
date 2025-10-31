@@ -2,18 +2,16 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,16 +19,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
-import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.appcompat.widget.SearchView; // ✅ Correct import
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 
 import com.example.myapplication.databinding.ActivityMainBinding;
-import com.google.android.gms.location.Priority;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -38,22 +33,30 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import android.content.res.Configuration;
 import com.google.android.gms.maps.model.MapStyleOptions;
-
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
@@ -124,7 +127,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // Profile button click
         BottomNavigationView bottomNav = requireActivity().findViewById(R.id.bottomNavigationView);
         profileImage.setOnClickListener(v ->{
-                Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Profile clicked", Toast.LENGTH_SHORT).show();
             bottomNav.setSelectedItemId(R.id.profile);
 
         });
@@ -250,7 +253,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         fusedClient = LocationServices.getFusedLocationProviderClient(requireContext());
     }
-//method to move users view o their location
+    //method to move users view o their location
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void moveCameraToMyLocation() {
         if (!hasLocationPermission()) return;
@@ -270,7 +273,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         } catch (SecurityException ignored) {}
     }
 
-//method to set dark mode map
+    //method to set dark mode map
     private void applyMapStyle() {
         if (googleMap == null) return;
         int night = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
@@ -280,7 +283,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         try {
             boolean ok = googleMap.setMapStyle(
                     MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes));
-             if (!ok) {
+            if (!ok) {
                 // style parsed but not applied (rare)
             }
         } catch (Resources.NotFoundException e) {
@@ -345,7 +348,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
 
     private void findAndShowRidesToDestination(String endRankName) {
-                // Normalize user input for case-insensitive matching
+        // Normalize user input for case-insensitive matching
 
         String normalized = endRankName.trim().toLowerCase();
         Toast.makeText(getContext(), "Searching destination: " + normalized, Toast.LENGTH_SHORT).show();
@@ -354,7 +357,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 .whereEqualTo("name_lowercase", normalized)
                 .get()
                 .addOnSuccessListener(endQuery -> {
-                        if (endQuery.isEmpty()) {
+                    if (endQuery.isEmpty()) {
                         Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -404,7 +407,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                                                 double price = prices.get(idx);
 
 
-
                                                 startridesDisplayList.add(rankName);
                                                 ridePricesList.add(String.format("Price: R%.2f", price));
                                             }
@@ -444,20 +446,94 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Toast.makeText(getContext(), "You selected: " + displayList.get(position), Toast.LENGTH_LONG).show();
             dialog.dismiss();
-            // TODO: 2025/10/30 we need to add google maps stuff to show the route on the map 
         });
     }
 
+    private void createRoute(LatLng start, LatLng end) {
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=" + start.latitude + "," + start.longitude +
+                "&destination=" + end.latitude + "," + end.longitude +
+                "&key=YOUR_API_KEY";
 
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
 
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                e.printStackTrace();
+            }
 
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String json = response.body().string();
 
+                    // Run UI operations on main thread
+                    requireActivity().runOnUiThread(() -> connectRoute(json));
+                }
+            }
+        });
+    }
 
+    private void connectRoute(String json) {
+        try {
+            JSONObject data = new JSONObject(json);
+            JSONArray routes = data.getJSONArray("routes");
 
+            if (routes.length() == 0) return;
 
+            JSONObject route = routes.getJSONObject(0);
+            String polyline = route.getJSONObject("overview_polyline").getString("points");
+            List<LatLng> points = decodePolyline(polyline);
 
+            PolylineOptions polylineOptions = new PolylineOptions()
+                    .addAll(points)
+                    .color(Color.BLUE)
+                    .width(10);
 
+            if (googleMap != null) {
+                googleMap.addPolyline(polylineOptions);
 
+                // Zoom the camera to fit the route
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                for (LatLng point : points) builder.include(point);
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private List<LatLng> decodePolyline(String encoded) {
+        List<LatLng> poly = new ArrayList<>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            poly.add(new LatLng(lat / 1E5, lng / 1E5));
+        }
+        return poly;
+    }
 
 
     @Override
