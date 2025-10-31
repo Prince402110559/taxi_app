@@ -100,5 +100,15 @@
             android:focusable="true"
             android:focusableInTouchMode="true"/>
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id = "@+id/myLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:contentDescription="My Location"
+            app:srcCompat="@android:drawable/ic_menu_mylocation"
+            app:tint="@color/backgroundColor"/>
+
     </LinearLayout>
 </FrameLayout>

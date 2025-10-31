@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -28,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.myapplication.databinding.ActivityMainBinding;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -42,6 +45,7 @@ import android.content.res.Configuration;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -67,6 +71,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // Required empty public constructor
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -79,11 +84,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         profileImage = view.findViewById(R.id.profileImage);
         searchBar = view.findViewById(R.id.searchBar);
         dropSearchView = view.findViewById(R.id.dropSearchView);
+        FloatingActionButton locationButton = view.findViewById(R.id.myLocation);
 
         searchBar.setQueryHint("Choose Start Location");
         dropSearchView.setQueryHint("Choose Destination");
         searchBar.setIconified(false);
         dropSearchView.setIconified(false);
+        locationButton.setOnClickListener(v -> zoomToCurrentLocation());
 
         /*
         searchBar.setOnClickListener(v -> {
@@ -174,6 +181,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         try {
@@ -221,6 +229,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private void requestLocationPermission() {
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_LOCATION);
     }
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -241,7 +250,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         fusedClient = LocationServices.getFusedLocationProviderClient(requireContext());
     }
-//mthod to move users view o their location
+//method to move users view o their location
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void moveCameraToMyLocation() {
         if (!hasLocationPermission()) return;
         fusedClient.getLastLocation().addOnSuccessListener(loc -> {
@@ -251,7 +261,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             }
         });
     }
-    //method tonble ad find the users lcation on he mp
+    //method to enable ad find the users location on he map
     private void enableMyLocation() {
         if (googleMap == null) return;
         try {
@@ -278,6 +288,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void getUserCurrentAddress(Consumer<String> callback) {
         if (!hasLocationPermission()) {
             callback.accept("");
@@ -296,6 +307,39 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             }
             callback.accept("");
         });
+    }
+
+    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    private void zoomToCurrentLocation(){
+        if (googleMap == null || fusedClient == null){
+            Toast.makeText(requireContext(), "Map or location client not ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!hasLocationPermission()){
+            requestLocationPermission();
+            return;
+        }
+
+        try {
+            // Enable blue dot
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+            // Get current location
+            fusedClient.getCurrentLocation(
+                    com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                    null
+            ).addOnSuccessListener(location -> {
+                if (location != null) {
+                    LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17f));
+                } else {
+                    Toast.makeText(requireContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
     }
 
 
