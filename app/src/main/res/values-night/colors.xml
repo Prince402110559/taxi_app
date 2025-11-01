@@ -3,4 +3,6 @@
     <color name="backgroundColor">#161823</color>
     <color name="headingcolor">#FE2C55</color>
     <color name="textColor">#EEEEEE</color>
+    <color name="routePrimary">#90CAF9</color>
+
 </resources>

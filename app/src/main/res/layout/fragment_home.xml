@@ -5,25 +5,21 @@
     android:id="@+id/homeFragmentRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeFragment"
-    android:layout_marginTop="30dp">
+    tools:context=".HomeFragment">
 
-
-    <!-- MapView -->
-
-    <!-- Header with Menu & Profile -->
+    <!-- Map base layer -->
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Header with Menu & Profile -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:padding="10dp"
         android:gravity="center_vertical"
-
         android:background="@color/backgroundColor"
         android:layout_gravity="top">
 
@@ -54,7 +50,7 @@
             android:scaleType="centerCrop"/>
     </LinearLayout>
 
-    <!-- Search Bar -->
+    <!-- Search and My Location -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -63,26 +59,19 @@
         android:paddingStart="1dp"
         android:paddingEnd="1dp"
         android:layout_marginTop="60dp"
-        android:elevation="6dp"
-        >
+        android:elevation="6dp">
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/searchBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="11dp"
-            android:layout_marginTop="0dp"
             android:layout_marginEnd="16dp"
             android:elevation="6dp"
             android:iconifiedByDefault="false"
-            app:layout_constraintTop_toBottomOf="parent"
             android:editTextColor="@color/textColor"
             android:textColorHint="@color/textColor"
-            android:background="@color/backgroundColor"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            />
-
+            android:background="@color/backgroundColor" />
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/dropSearchView"
@@ -93,22 +82,23 @@
             android:layout_marginEnd="16dp"
             android:elevation="6dp"
             android:iconifiedByDefault="false"
-            app:layout_constraintTop_toBottomOf="parent"
             android:editTextColor="@color/textColor"
             android:textColorHint="@color/textColor"
-            android:background="@color/backgroundColor"
-            android:focusable="true"
-            android:focusableInTouchMode="true"/>
+            android:background="@color/backgroundColor" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id = "@+id/myLocation"
+            android:id="@+id/myLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
             android:contentDescription="My Location"
             app:srcCompat="@android:drawable/ic_menu_mylocation"
             app:tint="@color/backgroundColor"/>
-
     </LinearLayout>
+
+    <!-- One reusable blocking overlay above all content -->
+    <include layout="@layout/progress_overlay"/>
+
 </FrameLayout>
