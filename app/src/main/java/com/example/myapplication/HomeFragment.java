@@ -2,7 +2,6 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
@@ -13,20 +12,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresPermission;
-import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.widget.SearchView; // ✅ Correct import
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.example.myapplication.databinding.ActivityMainBinding;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -34,31 +35,21 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import android.content.res.Configuration;
+import com.google.android.gms.maps.model.MapStyleOptions;
+
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
@@ -76,7 +67,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // Required empty public constructor
     }
 
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -89,13 +79,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         profileImage = view.findViewById(R.id.profileImage);
         searchBar = view.findViewById(R.id.searchBar);
         dropSearchView = view.findViewById(R.id.dropSearchView);
-        FloatingActionButton locationButton = view.findViewById(R.id.myLocation);
 
         searchBar.setQueryHint("Choose Start Location");
         dropSearchView.setQueryHint("Choose Destination");
         searchBar.setIconified(false);
         dropSearchView.setIconified(false);
-        locationButton.setOnClickListener(v -> zoomToCurrentLocation());
 
         /*
         searchBar.setOnClickListener(v -> {
@@ -147,8 +135,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String start) {
                 String drop = dropSearchView.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowRidesToDestination(start, drop);
-                } else {
+                    findAndShowRidesToDestination( drop);
+                }else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
 
                 }
@@ -170,7 +158,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String drop) {
                 String start = searchBar.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowRidesToDestination(start, drop);
+                    findAndShowRidesToDestination( drop);
                 } else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
                 }
@@ -186,7 +174,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         try {
@@ -234,7 +221,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private void requestLocationPermission() {
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_LOCATION);
     }
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -255,8 +241,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         fusedClient = LocationServices.getFusedLocationProviderClient(requireContext());
     }
-    //method to move users view o their location
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    //mthod to move users view o their location
     private void moveCameraToMyLocation() {
         if (!hasLocationPermission()) return;
         fusedClient.getLastLocation().addOnSuccessListener(loc -> {
@@ -266,7 +251,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             }
         });
     }
-    //method to enable ad find the users location on he map
+    //method tonble ad find the users lcation on he mp
     private void enableMyLocation() {
         if (googleMap == null) return;
         try {
@@ -293,7 +278,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void getUserCurrentAddress(Consumer<String> callback) {
         if (!hasLocationPermission()) {
             callback.accept("");
@@ -314,130 +298,122 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
-    @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
-    private void zoomToCurrentLocation(){
-        if (googleMap == null || fusedClient == null){
-            Toast.makeText(requireContext(), "Map or location client not ready", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (!hasLocationPermission()){
-            requestLocationPermission();
-            return;
-        }
 
-        try {
-            // Enable blue dot
-            googleMap.setMyLocationEnabled(true);
-            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-            // Get current location
-            fusedClient.getCurrentLocation(
-                    com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                    null
-            ).addOnSuccessListener(location -> {
-                if (location != null) {
-                    LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 17f));
-                } else {
-                    Toast.makeText(requireContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-    }
+    private void findAndShowRidesToDestination(String endRankName) {
+        String normalized = endRankName.trim().toLowerCase();
+        Toast.makeText(getContext(), "Searching destination: " + normalized, Toast.LENGTH_SHORT).show();
 
-    private void findAndShowRidesToDestination(String startRankName, String endRankName) {
-        String startNormalized = startRankName.trim().toLowerCase();
-        String endNormalized = endRankName.trim().toLowerCase();
-
-        //Get start rank
         db.collection("rank")
-                .whereEqualTo("name_lowercase", startNormalized)
+                .whereEqualTo("name_lowercase", normalized)
                 .get()
-                .addOnSuccessListener(startQuery -> {
-                    if (startQuery.isEmpty()) {
-                        Toast.makeText(getContext(), "Start rank not found", Toast.LENGTH_SHORT).show();
+                .addOnSuccessListener(endQuery -> {
+                    if (endQuery.isEmpty()) {
+                        Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_LONG).show();
                         return;
                     }
 
-                    DocumentSnapshot startDoc = startQuery.getDocuments().get(0);
-                    String startRankId = startDoc.getId();
-                    String startRankRealName = startDoc.getString("name");
-                    Double startLat = startDoc.getDouble("latitude");
-                    Double startLng = startDoc.getDouble("longitude");
-
-                    if (startLat == null || startLng == null) {
-                        Log.d("DEBUG", "Start rank missing coordinates: " + startDoc.getData());
-                        Toast.makeText(getContext(), "Start rank coordinates missing in database", Toast.LENGTH_LONG).show();
+                    DocumentSnapshot endDoc = endQuery.getDocuments().get(0);
+                    String endRankId = endDoc.getId();
+                    String destinationRankName = endDoc.getString("name");
+                    LatLng endLatLng = extractLatLngFromRank(endDoc);
+                    if (endLatLng == null) {
+                        Toast.makeText(getContext(), "Destination coordinates missing", Toast.LENGTH_LONG).show();
                         return;
                     }
 
-                    LatLng startPoint = new LatLng(startLat, startLng);
-
-                    //Get end rank
-                    db.collection("rank")
-                            .whereEqualTo("name_lowercase", endNormalized)
+                    db.collection("route")
+                            .whereEqualTo("endRankId", endRankId)
                             .get()
-                            .addOnSuccessListener(endQuery -> {
-                                if (endQuery.isEmpty()) {
-                                    Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_SHORT).show();
+                            .addOnSuccessListener(routeQuery -> {
+                                if (routeQuery.isEmpty()) {
+                                    Toast.makeText(getContext(), "No rides available to this destination", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
-                                DocumentSnapshot endDoc = endQuery.getDocuments().get(0);
-                                String endRankId = endDoc.getId();
-                                String endRankRealName = endDoc.getString("name");
-                                Double endLat = endDoc.getDouble("latitude");
-                                Double endLng = endDoc.getDouble("longitude");
-
-                                if (endLat == null || endLng == null) {
-                                    Log.d("DEBUG", "End rank missing coordinates: " + endDoc.getData());
-                                    Toast.makeText(getContext(), "Destination coordinates missing in database", Toast.LENGTH_LONG).show();
+                                List<String> startRankIds = new ArrayList<>();
+                                List<Double> pricesRaw = new ArrayList<>();
+                                for (DocumentSnapshot routeDoc : routeQuery) {
+                                    String startId = routeDoc.getString("startRankId");
+                                    Double price = routeDoc.getDouble("price");
+                                    if (startId != null && price != null) {
+                                        startRankIds.add(startId);
+                                        pricesRaw.add(price);
+                                    }
+                                }
+                                if (startRankIds.isEmpty()) {
+                                    Toast.makeText(getContext(), "No valid start ranks found", Toast.LENGTH_LONG).show();
                                     return;
                                 }
 
-                                LatLng endPoint = new LatLng(endLat, endLng);
-
-                                //Find the route by IDs
-                                db.collection("route")
-                                        .whereEqualTo("startRankId", startRankId)
-                                        .whereEqualTo("endRankId", endRankId)
+                                db.collection("rank")
+                                        .whereIn(FieldPath.documentId(), startRankIds)
                                         .get()
-                                        .addOnSuccessListener(routeQuery -> {
-                                            if (routeQuery.isEmpty()) {
-                                                Toast.makeText(getContext(), "No route found between " + startRankRealName + " and " + endRankRealName, Toast.LENGTH_LONG).show();
+                                        .addOnSuccessListener(startRanksQuery -> {
+                                            List<String> startNames = new ArrayList<>();
+                                            List<String> priceLabels = new ArrayList<>();
+                                            List<LatLng> startLatLngs = new ArrayList<>();
+
+                                            // Align outputs with startRankIds/pricesRaw
+                                            for (DocumentSnapshot doc : startRanksQuery) {
+                                                String startId = doc.getId();
+                                                int idx = startRankIds.indexOf(startId);
+                                                if (idx < 0) continue;
+
+                                                String rankName = doc.getString("name");
+                                                Double price = pricesRaw.get(idx);
+                                                LatLng sLL = extractLatLngFromRank(doc);
+                                                if (sLL == null) continue;
+
+                                                startNames.add(rankName != null ? rankName : "(unknown)");
+                                                priceLabels.add(String.format("Price: R%.2f", price));
+                                                startLatLngs.add(sLL);
+                                            }
+
+                                            if (startNames.isEmpty()) {
+                                                Toast.makeText(getContext(), "No start ranks with coordinates found", Toast.LENGTH_LONG).show();
                                                 return;
                                             }
 
-                                            DocumentSnapshot routeDoc = routeQuery.getDocuments().get(0);
-                                            Double price = routeDoc.getDouble("price");
-
-                                            // Draw route on map
-                                            createRoute(startPoint, endPoint, startRankRealName, endRankRealName);
-
-                                            // Show price
-                                            Toast.makeText(getContext(), "Price: R" + price, Toast.LENGTH_LONG).show();
+                                            showBottomSheetWithPrices(
+                                                    startNames,
+                                                    destinationRankName != null ? destinationRankName : endRankName,
+                                                    priceLabels,
+                                                    startLatLngs,
+                                                    endLatLng,
+                                                    pricesRaw
+                                            );
                                         })
-                                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading route: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-
+                                        .addOnFailureListener(e ->
+                                                Toast.makeText(getContext(), "Failed loading start ranks: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                                        );
                             })
-                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading destination rank: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(), "Failed loading routes: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                            );
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading start rank: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed loading destination ranks: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
 
 
-    //am not sure if we still gonna need this class. The prices are already covered in the findAndShowRidesToDestination()
-    private void showBottomSheetWithPrices(List<String> start ,String destination, List<String> prices) {
+    private void showBottomSheetWithPrices(
+            List<String> startNames,
+            String destinationName,
+            List<String> priceLabels,
+            List<LatLng> startLatLngs,
+            LatLng endLatLng,
+            List<Double> pricesRaw
+    ) {
         View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_ride_options, null);
         ListView listView = sheetView.findViewById(R.id.listView);
 
         List<String> displayList = new ArrayList<>();
-        for (int i = 0; i < start.size(); i++) {
-            displayList.add(start.get(i) + " → " + destination + " \n" + prices.get(i));
+        int size = Math.min(startNames.size(), Math.min(priceLabels.size(), startLatLngs.size()));
+        for (int i = 0; i < size; i++) {
+            displayList.add(startNames.get(i) + " → " + destinationName + " \n" + priceLabels.get(i));
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, displayList);
@@ -448,84 +424,161 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         dialog.show();
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            Toast.makeText(getContext(), "You selected: " + displayList.get(position), Toast.LENGTH_LONG).show();
             dialog.dismiss();
+            LatLng startLL = startLatLngs.get(position);
+            String startName = startNames.get(position);
+            Double price = pricesRaw.get(position);
+            requestOsrmAndRender(startLL, endLatLng, startName, destinationName, price);
         });
     }
 
-    //finds the route between two coordinates
-    private void createRoute(LatLng start, LatLng end, String startName, String endName) {
+    @Nullable
+    private LatLng extractLatLngFromRank(DocumentSnapshot doc) {
+        Object raw = doc.get("location");
+        if (raw instanceof com.google.firebase.firestore.GeoPoint) {
+            com.google.firebase.firestore.GeoPoint gp = (com.google.firebase.firestore.GeoPoint) raw;
+            return new LatLng(gp.getLatitude(), gp.getLongitude());
+        } else if (raw instanceof String) {
+            String locStr = (String) raw; // like "26.1057° S, 28.1016° E"
+            try {
+                String[] parts = locStr.split(",");
+                double lat = parseDeg(parts[0]);
+                double lng = parseDeg(parts[1]);
+                return new LatLng(lat, lng);
+            } catch (Exception ignored) { }
+        }
+        // Optional alternates if you migrate:
+        com.google.firebase.firestore.GeoPoint gpAlt = doc.getGeoPoint("coords");
+        if (gpAlt != null) return new LatLng(gpAlt.getLatitude(), gpAlt.getLongitude());
+        Double latNum = doc.getDouble("latitude");
+        Double lngNum = doc.getDouble("longitude");
+        if (latNum != null && lngNum != null) return new LatLng(latNum, lngNum);
+        return null;
+    }
+
+
+
+
+    private double parseDeg(String token) {
+        token = token.trim();
+        boolean south = token.endsWith("S") || token.endsWith("s");
+        boolean west  = token.endsWith("W") || token.endsWith("w");
+        String num = token.replace("°", "").replaceAll("[NnSsEeWw]", "").trim();
+        double v = Double.parseDouble(num);
+        if (south || west) v = -v;
+        return v;
+    }
+
+    private void requestOsrmAndRender(LatLng start, LatLng end, String startName, String endName, Double price) {
         String url = "https://router.project-osrm.org/route/v1/driving/"
                 + start.longitude + "," + start.latitude + ";"
                 + end.longitude + "," + end.latitude
-                + "?overview=full&geometries=geojson";
+                + "?overview=full&geometries=geojson&alternatives=false&steps=false";
 
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).build();
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+        okhttp3.Request request = new okhttp3.Request.Builder().url(url).build();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                e.printStackTrace();
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override public void onFailure(@NonNull okhttp3.Call call, @NonNull java.io.IOException e) {
                 requireActivity().runOnUiThread(() ->
                         Toast.makeText(getContext(), "Failed to draw route: " + startName + " → " + endName, Toast.LENGTH_SHORT).show());
             }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    String json = response.body().string();
-                    requireActivity().runOnUiThread(() -> connectOSRMRoute(json, start, end, startName, endName));
+            @Override public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws java.io.IOException {
+                Log.d("OSRM_URL", url);
+                Log.d("OSRM_HTTP", "code=" + response.code() + " msg=" + response.message());
+                String bodyStr = response.body() != null ? response.peekBody(Long.MAX_VALUE).string() : "null";
+                Log.d("OSRM_BODY", bodyStr);
+
+                if (!response.isSuccessful() || response.body() == null) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), "Routing service error", Toast.LENGTH_SHORT).show());
+                    return;
                 }
+                String json = response.body().string();
+                requireActivity().runOnUiThread(() -> connectOSRMRouteWithEta(json, start, end, startName, endName, price));
             }
         });
     }
 
-    //connects routes between two coordinates and makes the route visible on the map
-    private void connectOSRMRoute(String json, LatLng start, LatLng end, String startName, String endName) {
+    private void connectOSRMRouteWithEta(String json, LatLng start, LatLng end, String startName, String endName, Double price) {
         try {
-            JSONObject data = new JSONObject(json);
-            JSONArray routes = data.getJSONArray("routes");
-
+            org.json.JSONObject data = new org.json.JSONObject(json);
+            org.json.JSONArray routes = data.getJSONArray("routes");
             if (routes.length() == 0) {
                 Toast.makeText(getContext(), "No route found", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            JSONObject route = routes.getJSONObject(0);
-            JSONArray coordinates = route.getJSONObject("geometry").getJSONArray("coordinates");
+            org.json.JSONObject route = routes.getJSONObject(0);
+            double durationSec = route.getDouble("duration");
+            double distanceM   = route.getDouble("distance");
 
-            List<LatLng> points = new ArrayList<>();
-            for (int i = 0; i < coordinates.length(); i++) {
-                JSONArray coord = coordinates.getJSONArray(i);
-                double lng = coord.getDouble(0);
-                double lat = coord.getDouble(1);
-                points.add(new LatLng(lat, lng));
-            }
+            String etaText  = formatDuration(durationSec);
+            String distText = formatDistance(distanceM);
 
-            // Draw route and markers
-            googleMap.addMarker(new MarkerOptions().position(start).title(startName));
-            googleMap.addMarker(new MarkerOptions().position(end).title(endName));
-
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .addAll(points)
-                    .color(Color.BLUE)
-                    .width(8);
-            googleMap.addPolyline(polylineOptions);
-
-// 🔹 Focus camera on route
+            org.json.JSONArray coordinates = route.getJSONObject("geometry").getJSONArray("coordinates");
+            java.util.List<LatLng> points = new java.util.ArrayList<>();
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            for (LatLng point : points) {
-                builder.include(point);
-            }
-            LatLngBounds bounds = builder.build();
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            for (int i = 0; i < coordinates.length(); i++) {
+                org.json.JSONArray c = coordinates.getJSONArray(i);
+                double lng = c.getDouble(0);
+                double lat = c.getDouble(1);
+                LatLng p = new LatLng(lat, lng);
+                points.add(p);
+                builder.include(p);
+            }
+
+            // Optional: googleMap.clear(); // if you want to clear previous drawings
+            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(start).title(startName));
+            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(end).title(endName));
+            googleMap.addPolyline(new com.google.android.gms.maps.model.PolylineOptions().addAll(points).width(8).color(Color.BLUE));
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
+
+            // Simple summary bottom sheet
+            BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+            View v = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_route_summary, null);
+            android.widget.TextView title = v.findViewById(R.id.txtTitle);
+            android.widget.TextView line1 = v.findViewById(R.id.txtLine1);
+            android.widget.TextView line2 = v.findViewById(R.id.txtLine2);
+            android.widget.TextView line3 = v.findViewById(R.id.txtLine3);
+            title.setText(startName + " → " + endName);
+            line1.setText("ETA: " + etaText);
+            line2.setText("Distance: " + distText);
+            line3.setText(price != null ? ("Price: R" + String.format(java.util.Locale.getDefault(),"%.2f", price)) : "Price: N/A");
+            dialog.setContentView(v);
+            dialog.show();
+
+        } catch (org.json.JSONException e) {
             Toast.makeText(getContext(), "Error parsing route data", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private String formatDuration(double sec) {
+        int minutes = (int)Math.round(sec / 60.0);
+        if (minutes < 60) return minutes + " min";
+        int hours = minutes / 60;
+        int rem = minutes % 60;
+        return hours + " hr " + (rem > 0 ? rem + " min" : "");
+    }
+
+    private String formatDistance(double meters) {
+        if (meters < 1000) return ((int)meters) + " m";
+        double km = meters / 1000.0;
+        return String.format(java.util.Locale.getDefault(),"%.1f km", km);
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
     @Override
