@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -145,8 +147,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String start) {
                 String drop = dropSearchView.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowRidesToDestination( drop);
-                }else {
+                    findAndShowRidesToDestination(start, drop);
+                } else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
 
                 }
@@ -168,7 +170,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             public boolean onQueryTextSubmit(String drop) {
                 String start = searchBar.getQuery().toString();
                 if (!start.isEmpty() && !drop.isEmpty()) {
-                    findAndShowRidesToDestination( drop);
+                    findAndShowRidesToDestination(start, drop);
                 } else {
                     Toast.makeText(getContext(), "Please enter both start and destination", Toast.LENGTH_SHORT).show();
                 }
@@ -345,88 +347,90 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    private void findAndShowRidesToDestination(String startRankName, String endRankName) {
+        String startNormalized = startRankName.trim().toLowerCase();
+        String endNormalized = endRankName.trim().toLowerCase();
 
-
-    private void findAndShowRidesToDestination(String endRankName) {
-        // Normalize user input for case-insensitive matching
-
-        String normalized = endRankName.trim().toLowerCase();
-        Toast.makeText(getContext(), "Searching destination: " + normalized, Toast.LENGTH_SHORT).show();
-
+        //Get start rank
         db.collection("rank")
-                .whereEqualTo("name_lowercase", normalized)
+                .whereEqualTo("name_lowercase", startNormalized)
                 .get()
-                .addOnSuccessListener(endQuery -> {
-                    if (endQuery.isEmpty()) {
-                        Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_LONG).show();
+                .addOnSuccessListener(startQuery -> {
+                    if (startQuery.isEmpty()) {
+                        Toast.makeText(getContext(), "Start rank not found", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    String endRankId = endQuery.getDocuments().get(0).getId();
-                    String destinationRankName = endQuery.getDocuments().get(0).getString("name");
 
+                    DocumentSnapshot startDoc = startQuery.getDocuments().get(0);
+                    String startRankId = startDoc.getId();
+                    String startRankRealName = startDoc.getString("name");
+                    Double startLat = startDoc.getDouble("latitude");
+                    Double startLng = startDoc.getDouble("longitude");
 
-                    db.collection("route")
-                            .whereEqualTo("endRankId", endRankId)
+                    if (startLat == null || startLng == null) {
+                        Log.d("DEBUG", "Start rank missing coordinates: " + startDoc.getData());
+                        Toast.makeText(getContext(), "Start rank coordinates missing in database", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+
+                    LatLng startPoint = new LatLng(startLat, startLng);
+
+                    //Get end rank
+                    db.collection("rank")
+                            .whereEqualTo("name_lowercase", endNormalized)
                             .get()
-                            .addOnSuccessListener(routeQuery -> {
-
-                                if (routeQuery.isEmpty()) {
-                                    Toast.makeText(getContext(), "No rides available to this destination", Toast.LENGTH_SHORT).show();
+                            .addOnSuccessListener(endQuery -> {
+                                if (endQuery.isEmpty()) {
+                                    Toast.makeText(getContext(), "Destination rank not found", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
-                                List<String> startRankIds = new ArrayList<>();
-                                List<Double> prices = new ArrayList<>();
+                                DocumentSnapshot endDoc = endQuery.getDocuments().get(0);
+                                String endRankId = endDoc.getId();
+                                String endRankRealName = endDoc.getString("name");
+                                Double endLat = endDoc.getDouble("latitude");
+                                Double endLng = endDoc.getDouble("longitude");
 
-                                for (DocumentSnapshot routeDoc : routeQuery) {
-                                    String startId = routeDoc.getString("startRankId");
-                                    Double price = routeDoc.getDouble("price");
-
-                                    if (startId != null && price != null) {
-                                        startRankIds.add(startId);
-
-                                        prices.add(price);
-                                    }
-                                }
-
-                                if (startRankIds.isEmpty()) {
-                                    Toast.makeText(getContext(), "No valid start ranks found", Toast.LENGTH_LONG).show();
+                                if (endLat == null || endLng == null) {
+                                    Log.d("DEBUG", "End rank missing coordinates: " + endDoc.getData());
+                                    Toast.makeText(getContext(), "Destination coordinates missing in database", Toast.LENGTH_LONG).show();
                                     return;
                                 }
 
-                                List<String> startridesDisplayList = new ArrayList<>();
-                                List<String> ridePricesList = new ArrayList<>();
+                                LatLng endPoint = new LatLng(endLat, endLng);
 
-                                db.collection("rank")
-                                        .whereIn(FieldPath.documentId(), startRankIds)
+                                //Find the route by IDs
+                                db.collection("route")
+                                        .whereEqualTo("startRankId", startRankId)
+                                        .whereEqualTo("endRankId", endRankId)
                                         .get()
-                                        .addOnSuccessListener(startRanksQuery -> {
-                                            for (DocumentSnapshot doc : startRanksQuery) {
-                                                String rankName = doc.getString("name");
-                                                int idx = startRankIds.indexOf(doc.getId());
-                                                double price = prices.get(idx);
-
-
-                                                startridesDisplayList.add(rankName);
-                                                ridePricesList.add(String.format("Price: R%.2f", price));
+                                        .addOnSuccessListener(routeQuery -> {
+                                            if (routeQuery.isEmpty()) {
+                                                Toast.makeText(getContext(), "No route found between " + startRankRealName + " and " + endRankRealName, Toast.LENGTH_LONG).show();
+                                                return;
                                             }
 
-                                            showBottomSheetWithPrices(startridesDisplayList,endRankName, ridePricesList);
+                                            DocumentSnapshot routeDoc = routeQuery.getDocuments().get(0);
+                                            Double price = routeDoc.getDouble("price");
+
+                                            // Draw route on map
+                                            createRoute(startPoint, endPoint, startRankRealName, endRankRealName);
+
+                                            // Show price
+                                            Toast.makeText(getContext(), "Price: R" + price, Toast.LENGTH_LONG).show();
                                         })
-                                        .addOnFailureListener(e -> {
-                                            Toast.makeText(getContext(), "Failed loading start ranks: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                        });
+                                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading route: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+
                             })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(getContext(), "Failed loading routes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading destination rank: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed loading destination ranks: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed loading start rank: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
 
+
+    //am not sure if we still gonna need this class. The prices are already covered in the findAndShowRidesToDestination()
     private void showBottomSheetWithPrices(List<String> start ,String destination, List<String> prices) {
         View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_ride_options, null);
         ListView listView = sheetView.findViewById(R.id.listView);
@@ -449,11 +453,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
-    private void createRoute(LatLng start, LatLng end) {
-        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                "origin=" + start.latitude + "," + start.longitude +
-                "&destination=" + end.latitude + "," + end.longitude +
-                "&key=YOUR_API_KEY";
+    //finds the route between two coordinates
+    private void createRoute(LatLng start, LatLng end, String startName, String endName) {
+        String url = "https://router.project-osrm.org/route/v1/driving/"
+                + start.longitude + "," + start.latitude + ";"
+                + end.longitude + "," + end.latitude
+                + "?overview=full&geometries=geojson";
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();
@@ -462,77 +467,64 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 e.printStackTrace();
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), "Failed to draw route: " + startName + " → " + endName, Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful() && response.body() != null) {
                     String json = response.body().string();
-
-                    // Run UI operations on main thread
-                    requireActivity().runOnUiThread(() -> connectRoute(json));
+                    requireActivity().runOnUiThread(() -> connectOSRMRoute(json, start, end, startName, endName));
                 }
             }
         });
     }
 
-    private void connectRoute(String json) {
+    //connects routes between two coordinates and makes the route visible on the map
+    private void connectOSRMRoute(String json, LatLng start, LatLng end, String startName, String endName) {
         try {
             JSONObject data = new JSONObject(json);
             JSONArray routes = data.getJSONArray("routes");
 
-            if (routes.length() == 0) return;
+            if (routes.length() == 0) {
+                Toast.makeText(getContext(), "No route found", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             JSONObject route = routes.getJSONObject(0);
-            String polyline = route.getJSONObject("overview_polyline").getString("points");
-            List<LatLng> points = decodePolyline(polyline);
+            JSONArray coordinates = route.getJSONObject("geometry").getJSONArray("coordinates");
+
+            List<LatLng> points = new ArrayList<>();
+            for (int i = 0; i < coordinates.length(); i++) {
+                JSONArray coord = coordinates.getJSONArray(i);
+                double lng = coord.getDouble(0);
+                double lat = coord.getDouble(1);
+                points.add(new LatLng(lat, lng));
+            }
+
+            // Draw route and markers
+            googleMap.addMarker(new MarkerOptions().position(start).title(startName));
+            googleMap.addMarker(new MarkerOptions().position(end).title(endName));
 
             PolylineOptions polylineOptions = new PolylineOptions()
                     .addAll(points)
                     .color(Color.BLUE)
-                    .width(10);
+                    .width(8);
+            googleMap.addPolyline(polylineOptions);
 
-            if (googleMap != null) {
-                googleMap.addPolyline(polylineOptions);
-
-                // Zoom the camera to fit the route
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                for (LatLng point : points) builder.include(point);
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
+// 🔹 Focus camera on route
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            for (LatLng point : points) {
+                builder.include(point);
             }
-        } catch (JSONException e) {
+            LatLngBounds bounds = builder.build();
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+
+        } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(getContext(), "Error parsing route data", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private List<LatLng> decodePolyline(String encoded) {
-        List<LatLng> poly = new ArrayList<>();
-        int index = 0, len = encoded.length();
-        int lat = 0, lng = 0;
-
-        while (index < len) {
-            int b, shift = 0, result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-
-            poly.add(new LatLng(lat / 1E5, lng / 1E5));
-        }
-        return poly;
     }
 
 

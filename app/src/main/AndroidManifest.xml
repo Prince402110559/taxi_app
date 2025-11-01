@@ -31,7 +31,8 @@
             android:exported="false" />
         <activity
             android:name=".ProfileFragment"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <activity
             android:name=".LoginPage"
             android:exported="false" />
