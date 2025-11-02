@@ -6,17 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
-    tools:context=".SettingsActivity">
+    tools:context=".SettingsActivity"
+    android:layout_marginTop="20dp">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@color/backgroundColor"
         app:title="Settings"
         app:titleTextColor="@color/headingcolor"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="10dp" />
 
     <!-- Scrollable content -->
     <ScrollView
@@ -32,7 +34,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/headingcolor"/>
             <!-- Dark Mode -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -53,6 +58,8 @@
                     android:id="@+id/switchDarkMode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:thumbTint="@color/headingcolor"
                     android:trackTint="@color/textColor"/>
             </LinearLayout>
@@ -62,7 +69,51 @@
                 android:layout_height="1dp"
                 android:background="@color/headingcolor"/>
 
-            <!-- Notifications -->
+            <!-- terms and condition -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="12dp">
+                <TextView
+                    android:id="@+id/termsHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Terms of Service"
+                    android:textColor="@color/textColor"
+                    android:textSize="18sp"
+                    android:gravity="start|center_vertical"/>
+            </LinearLayout>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/headingcolor"/>
+
+            <LinearLayout
+                android:id="@+id/termsDetails"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:paddingStart="32dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/termsDetailsText"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="For more details or questions about the terms, contact us at support@group23.com."/>
+            </LinearLayout>
+
+
+
+
+            <!-- Help/Support corrected for expand/collapse and alignment -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,68 +122,38 @@
                 android:paddingVertical="12dp">
 
                 <TextView
+                    android:id="@+id/helpSupportHeader"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Notifications"
+                    android:text="Help/Support"
                     android:textColor="@color/textColor"
-                    android:textSize="18sp" />
-
-                <Switch
-                    android:id="@+id/switchNotifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:thumbTint="@color/headingcolor"
-                    android:trackTint="@color/textColor"/>
+                    android:textSize="18sp"
+                    android:gravity="start|center_vertical"/>
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/headingcolor"/>
-
-            <!-- Language -->
+            <!-- Details: sibling layout, initially gone -->
             <LinearLayout
+                android:id="@+id/helpSupportDetails"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingVertical="12dp">
+                android:visibility="gone"
+                android:paddingStart="32dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Language"
-                    android:textColor="@color/textColor"
-                    android:textSize="18sp" />
+                    android:text="Contact: support@group23.com" />
 
                 <TextView
-                    android:id="@+id/tvLanguage"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="English"
-                    android:textColor="@color/headingcolor"
-                    android:textSize="16sp"/>
+                    android:text="Feedback: groupDev23@gmail.com" />
+
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/headingcolor"/>
-
-            <!-- Go Premium -->
-
-            <!-- Support -->
-            <Button
-                android:id="@+id/btnSupport"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Support"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="@color/headingcolor"
-                android:textColor="@color/textColor"
-                android:textSize="18sp"/>
 
             <!-- Logout -->
             <Button
@@ -141,9 +162,19 @@
                 android:layout_height="wrap_content"
                 android:text="Logout"
                 android:layout_marginTop="24dp"
-                android:backgroundTint="@android:color/holo_red_light"
+                android:backgroundTint="@color/headingcolor"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"/>
+
+            <Button
+                android:id="@+id/deleteAccountBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:backgroundTint="@color/headingcolor"
+                android:text="Delete Account"
+                android:textColor="@android:color/white"
+                android:textSize="18sp" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
     }
-    /*@Override
+    @Override
     protected void onStart() {
         super.onStart();
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, WelcomePage.class));
             finish();
         }
-    }*/
+    }
 
 
     private void replacefragment(Fragment fragment){

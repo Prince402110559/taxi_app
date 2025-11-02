@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="backgroundColor">#161823</color>
-    <color name="headingcolor">#FE2C55</color>
-    <color name="textColor">#EEEEEE</color>
-    <color name="routePrimary">#90CAF9</color>
-
+    <resources xmlns:tools="http://schemas.android.com/tools">
+        <color name="backgroundColor">#161823</color>
+        <color name="headingcolor">#FE2C55</color>
+        <color name="textColor">#EEEEEE</color>
+        <color name="routePrimary" tools:ignore="MissingDefaultResource">#90CAF9</color>
 </resources>
+

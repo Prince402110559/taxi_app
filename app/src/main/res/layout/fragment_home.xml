@@ -5,7 +5,8 @@
     android:id="@+id/homeFragmentRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeFragment">
+    tools:context=".HomeFragment"
+    android:layout_marginTop="20dp">
 
     <!-- Map base layer -->
     <com.google.android.gms.maps.MapView

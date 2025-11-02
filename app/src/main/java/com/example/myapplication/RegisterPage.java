@@ -1,14 +1,14 @@
 package com.example.myapplication;
 
-
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.content.Intent;
-
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -20,26 +20,21 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import com.google.android.gms.common.SignInButton;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class RegisterPage extends AppCompatActivity{
+public class RegisterPage extends AppCompatActivity {
+
     private FirebaseAuth auth;
     private GoogleSignInClient gsc;
     private ActivityResultLauncher<Intent> googleLauncher;
 
-    private EditText firstName, lastName, emailEnter, passwords, confirmPassword;
-    private Button  btnRegister, btnLogin;
+    private View progressOverlay;
 
-     // Profile pic URI
+    private EditText firstName, lastName, emailEnter, passwords, confirmPassword;
+    private Button btnRegister, btnLogin;
 
     private FirebaseFirestore db;
 
@@ -55,9 +50,7 @@ public class RegisterPage extends AppCompatActivity{
         confirmPassword = findViewById(R.id.confirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
         btnLogin = findViewById(R.id.btnLogin);
-
-
-
+        progressOverlay = findViewById(R.id.progressRoot);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
@@ -68,74 +61,87 @@ public class RegisterPage extends AppCompatActivity{
                 .build();
         gsc = GoogleSignIn.getClient(this, gso);
 
-        googleLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                try {
-                    GoogleSignInAccount account = task.getResult(ApiException.class);
-                    AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-                    auth.signInWithCredential(cred)
-                            .addOnSuccessListener(r -> {
-                                FirebaseUser user = auth.getCurrentUser();
-                                if (user!= null) {
-                                    String uid = user.getUid();
-                                    String fName = account.getGivenName(); // Gets first name from Google
-                                    String lName = account.getFamilyName(); // Gets last name from Google
-                                    String email = account.getEmail();
+        googleLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        try {
+                            GoogleSignInAccount account = task.getResult(ApiException.class);
+                            if (account == null || account.getIdToken() == null) {
+                                showProgress(false);
+                                showInfo("Google sign-up failed. Please try again.");
+                                return;
+                            }
+                            AuthCredential cred = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                            auth.signInWithCredential(cred)
+                                    .addOnSuccessListener(r -> {
+                                        FirebaseUser user = auth.getCurrentUser();
+                                        if (user != null) {
+                                            String uid = user.getUid();
+                                            String fName = account.getGivenName() != null ? account.getGivenName() : "";
+                                            String lName = account.getFamilyName() != null ? account.getFamilyName() : "";
+                                            String email = account.getEmail();
 
-                                    // If name info is missing, set to empty or defaults
-                                    if (fName == null) fName = "";
-                                    if (lName == null) lName = "";
+                                            saveUserData(uid, fName, lName, email, () -> {
+                                                showProgress(false);
+                                                goHome();
+                                            });
+                                        } else {
+                                            showProgress(false);
+                                            showInfo("Google sign-up failed. Please try again.");
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        showProgress(false);
+                                        showInfo(mapAuthError(e));
+                                    });
+                        } catch (ApiException e) {
+                            showProgress(false);
+                            showInfo("Google sign-up was canceled.");
+                        }
+                    } else {
+                        showProgress(false);
+                        showInfo("Google sign-up was canceled.");
+                    }
+                });
 
-                                    saveUserData(uid, fName, lName, email);
-
-                                    toast("Registered with Google!");
-                                    startActivity(new Intent(this, MainActivity.class));
-                                    finish();
-                                }
-                            })
-                            .addOnFailureListener(e -> toast("Google sign-in failed: " + e.getMessage()));
-                } catch (ApiException e) { toast("Google sign-in canceled"); }
-            }
+        findViewById(R.id.Google).setOnClickListener(v -> {
+            showProgress(true);
+            googleLauncher.launch(gsc.getSignInIntent());
         });
 
-        findViewById(R.id.Google).setOnClickListener(v -> googleLauncher.launch(gsc.getSignInIntent()));
-
         btnRegister.setOnClickListener(v -> {
+            String fName = firstName.getText().toString().trim();
+            String lName = lastName.getText().toString().trim();
             String em = emailEnter.getText().toString().trim();
             String pw = passwords.getText().toString();
             String cpw = confirmPassword.getText().toString();
-            String fName = firstName.getText().toString().trim();
-            String lName = lastName.getText().toString().trim();
-            if (em.isEmpty() || pw.length() < 6) {
-                toast("Enter valid email and 6+ char password");
-                return;
-            }
-            if (!pw.equals(cpw)) {
-                toast("Passwords do not match");
-                return;
-            }
-            if (fName.isEmpty() || lName.isEmpty()) {
-                toast("Enter first and last name");
-                return;
-            }
+
+            String validation = validateInputs(fName, lName, em, pw, cpw);
+            if (validation != null) { showInfo(validation); return; }
+
+            showProgress(true);
             auth.createUserWithEmailAndPassword(em, pw)
                     .addOnSuccessListener(authResult -> {
                         FirebaseUser user = authResult.getUser();
-                        if (user != null) {
-                            saveUserData(user.getUid(), fName, lName, em);
-                        }
+                        if (user == null) { showProgress(false); showInfo("Sign up failed. Please try again."); return; }
+
+                        saveUserData(user.getUid(), fName, lName, em, () -> {
+                            showProgress(false);
+                            goHome();
+                        });
                     })
-                    .addOnFailureListener(e -> toast("Sign up failed: " + e.getMessage()));
+                    .addOnFailureListener(e -> {
+                        showProgress(false);
+                        showInfo(mapAuthError(e));
+                    });
         });
 
-        // Go back to Login
-        btnLogin.setOnClickListener(v ->
-                startActivity(new Intent(this, LoginPage.class))
-        );
+        btnLogin.setOnClickListener(v -> startActivity(new Intent(this, LoginPage.class)));
     }
 
-    private void saveUserData(String userId, String firstName, String lastName, String email) {
+    private void saveUserData(String userId, String firstName, String lastName, String email, Runnable onDone) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("firstName", firstName);
         userData.put("lastName", lastName);
@@ -143,15 +149,50 @@ public class RegisterPage extends AppCompatActivity{
 
         db.collection("users").document(userId)
                 .set(userData)
-                .addOnSuccessListener(aVoid -> {
-                    toast("Registration success!");
-                    startActivity(new Intent(this, MainActivity.class));
-                    finish();
-                })
-                .addOnFailureListener(e -> toast("Failed to save user data"));
+                .addOnSuccessListener(aVoid -> onDone.run())
+                .addOnFailureListener(e -> {
+                    showInfo("Account created, but we couldn’t save your profile. You can continue.");
+                    onDone.run();
+                });
     }
-    private void toast(String s) { Toast.makeText(this, s, Toast.LENGTH_SHORT).show(); }
 
+    private void goHome() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
 
+    private void showProgress(boolean show) {
+        if (progressOverlay == null) return;
+        progressOverlay.setVisibility(show ? View.VISIBLE : View.GONE);
+        View root = findViewById(R.id.registerRoot);
+        if (root != null) root.setEnabled(!show);
+    }
 
+    private void showInfo(String message) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton("OK", (d,w) -> d.dismiss())
+                .show();
+    }
+
+    private String validateInputs(String fName, String lName, String email, String pw, String cpw) {
+        if (fName.isEmpty()) return "Please enter your first name.";
+        if (lName.isEmpty()) return "Please enter your last name.";
+        if (email.isEmpty()) return "Please enter your email.";
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "Please enter a valid email address.";
+        if (pw.isEmpty()) return "Please enter a password.";
+        if (pw.length() < 6) return "Your password must be at least 6 characters.";
+        if (!pw.equals(cpw)) return "Passwords do not match.";
+        return null;
+    }
+
+    private String mapAuthError(Exception e) {
+        String msg = (e != null && e.getMessage() != null) ? e.getMessage() : "";
+        String lower = msg.toLowerCase();
+        if (lower.contains("email address is already in use")) return "An account already exists with this email. Try logging in.";
+        if (lower.contains("badly formatted")) return "That email address doesn’t look right.";
+        if (lower.contains("network") || lower.contains("blocked by device")) return "Cannot reach the server. Check your internet and try again.";
+        if (lower.contains("too many requests")) return "Too many attempts. Please wait a moment and try again.";
+        return "Something went wrong. Please try again.";
+    }
 }

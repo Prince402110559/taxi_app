@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="backgroundColor">#EEEEEE</color>
-    <color name="headingcolor">#4285F4</color>
-    <color name="textColor">#161823</color>
+    <color name="backgroundColor">#FAFAFA</color>
+    <color name="headingcolor">#FF0101</color>
+    <color name="textColor">#23253A</color>
+    <color name="btnColor"> #8F00FF</color>
+    <color name="alttxtColor"> #FFFFFF</color>
     <color name="routePrimary">#1E88E5</color>
 
 </resources>
