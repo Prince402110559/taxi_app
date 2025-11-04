@@ -26,7 +26,9 @@
             android:id="@+id/btnSecondary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancel" />
+            android:text="Cancel"
+            android:textColor="@color/textColor"
+            android:backgroundTint="@color/headingcolor"/>
 
         <!-- Primary action (e.g., Retry/OK); hidden if not used -->
         <Button
@@ -34,6 +36,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="OK" />
+            android:text="OK"
+            android:textColor="@color/textColor"
+            android:backgroundTint="@color/headingcolor"/>
     </LinearLayout>
 </LinearLayout>
