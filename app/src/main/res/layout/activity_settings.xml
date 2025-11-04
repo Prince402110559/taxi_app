@@ -69,6 +69,46 @@
                 android:layout_height="1dp"
                 android:background="@color/headingcolor"/>
 
+
+
+            <!-- Language -->
+            <LinearLayout
+                android:id="@+id/rowLanguage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="12dp"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/txtLanguageLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Language"
+                    android:textColor="@color/textColor"
+                    android:textSize="18sp"
+                    android:gravity="start|center_vertical"/>
+
+                <TextView
+                    android:id="@+id/txtLanguageValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="English"
+                    android:textColor="@color/headingcolor"
+                    android:textSize="16sp"
+                    android:paddingStart="8dp"/>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/headingcolor"/>
+
             <!-- terms and condition -->
             <LinearLayout
                 android:layout_width="match_parent"

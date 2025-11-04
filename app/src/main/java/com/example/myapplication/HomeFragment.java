@@ -11,7 +11,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -34,6 +36,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
@@ -48,6 +51,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -71,6 +75,18 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
     // Simple in-memory cache for ranks by documentId
     private final Map<String, RankInfo> rankCache = new HashMap<>();
+
+    // Cache last options so Back from summary can reopen without refetch
+    private List<String> lastStartNames;
+    private List<String> lastPriceLabels;
+    private List<LatLng> lastStartLLs;
+    private LatLng lastEndLL;
+    private List<Double> lastPricesRaw;
+    private String lastDestinationName;
+
+    // Track current route overlays to avoid stacking
+    private com.google.android.gms.maps.model.Polyline currentRouteLine;
+    private final List<com.google.android.gms.maps.model.Marker> currentRouteMarkers = new ArrayList<>();
 
     // Holds minimal rank info
     private static class RankInfo {
@@ -359,17 +375,24 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                                             sortedStartNames.add(o.startName);
                                             sortedStartLLs.add(o.startLL);
                                             sortedPricesRaw.add(o.price);
-                                            sortedPriceLabels.add(String.format("Price: R%.2f", o.price));
+                                            sortedPriceLabels.add(String.format(Locale.getDefault(),"Price: R%.2f", o.price));
                                         }
 
                                         showProgress(false);
+                                        lastStartNames = sortedStartNames;
+                                        lastPriceLabels = sortedPriceLabels;
+                                        lastStartLLs = sortedStartLLs;
+                                        lastEndLL = endRank.latLng;
+                                        lastPricesRaw = sortedPricesRaw;
+                                        lastDestinationName = endRank.name != null ? endRank.name : endRankName;
+
                                         showBottomSheetWithPrices(
-                                                sortedStartNames,
-                                                endRank.name != null ? endRank.name : endRankName,
-                                                sortedPriceLabels,
-                                                sortedStartLLs,
-                                                endRank.latLng,
-                                                sortedPricesRaw
+                                                lastStartNames,
+                                                lastDestinationName,
+                                                lastPriceLabels,
+                                                lastStartLLs,
+                                                lastEndLL,
+                                                lastPricesRaw
                                         );
                                     });
                                 };
@@ -410,76 +433,82 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 });
     }
 
-    // Bottom sheet list: pick a start → draw route with ETA/price
+    // Bottom sheet list: pick a start → confirm → draw route
     private void showBottomSheetWithPrices(
-            List<String> startNames,
-            String destinationName,
-            List<String> priceLabels,
-            List<LatLng> startLatLngs,
-            LatLng endLatLng,
-            List<Double> pricesRaw
+            List<String> startNames, String destinationName, List<String> priceLabels,
+            List<LatLng> startLatLngs, LatLng endLatLng, List<Double> pricesRaw
     ) {
         View sheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_ride_options, null);
         ListView listView = sheetView.findViewById(R.id.listView);
+        ((TextView) sheetView.findViewById(R.id.titleText))
+                .setText("Start options for " + destinationName);
+        ((TextView) sheetView.findViewById(R.id.subtitleText))
+                .setText("Closest shown first");
 
-        List<String> displayList = new ArrayList<>();
+        // Model for binding
+        class Item { String name, price, dest, distance; LatLng sLL; Double rawPrice; }
+        List<Item> items = new ArrayList<>();
         int size = Math.min(startNames.size(), Math.min(priceLabels.size(), startLatLngs.size()));
         for (int i = 0; i < size; i++) {
-            displayList.add(startNames.get(i) + " → " + destinationName + " \n" + priceLabels.get(i));
+            Item it = new Item();
+            it.name = startNames.get(i);
+            it.price = priceLabels.get(i).replace("Price: ", ""); // "R25.00"
+            it.dest = "to " + destinationName;
+            it.sLL = startLatLngs.get(i);
+            it.rawPrice = pricesRaw.get(i);
+            it.distance = "";
+            items.add(it);
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, displayList);
+        final int[] selected = {-1};
+
+        ArrayAdapter<Item> adapter = new ArrayAdapter<Item>(requireContext(), R.layout.ride_option_row, items) {
+            @NonNull @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                View row = convertView;
+                if (row == null) row = getLayoutInflater().inflate(R.layout.ride_option_row, parent, false);
+                Item it = getItem(position);
+                if (it != null) {
+                    ((TextView) row.findViewById(R.id.txtTitle)).setText(it.name);
+                    ((TextView) row.findViewById(R.id.txtPrice)).setText(it.price);
+                    ((TextView) row.findViewById(R.id.txtSubtitle)).setText(it.dest);
+                    ((TextView) row.findViewById(R.id.txtDistance)).setText(it.distance != null ? it.distance : "");
+                }
+                MaterialCardView card = (MaterialCardView) row; // root must be MaterialCardView
+                card.setCardElevation(position == 0 ? 8f : 4f);
+                row.setBackgroundResource(position == selected[0]
+                        ? R.drawable.ride_row_bg_selected
+                        : R.drawable.ride_row_bg);
+                return row;
+            }
+        };
         listView.setAdapter(adapter);
 
-        BottomSheetDialog dialog = new BottomSheetDialog(getContext());
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         dialog.setContentView(sheetView);
-        dialog.show();
 
-        listView.setOnItemClickListener((parent, view, position, id) -> {
+        Button btnSelect = sheetView.findViewById(R.id.btnSelect);
+        Button btnClose  = sheetView.findViewById(R.id.btnCloseSheet);
+        btnSelect.setEnabled(false);
+
+        listView.setOnItemClickListener((parent, row, position, id) -> {
+            selected[0] = position;
+            btnSelect.setEnabled(true);
+            adapter.notifyDataSetChanged();
+        });
+
+        btnSelect.setOnClickListener(v -> {
+            if (selected[0] < 0) return;
+            Item it = items.get(selected[0]);
             dialog.dismiss();
             showProgress(true);
-            requestOsrmAndRender(startLatLngs.get(position), endLatLng, startNames.get(position), destinationName, pricesRaw.get(position));
+            // Clear previous map overlays before drawing a new route
+            clearCurrentRouteOverlays();
+            requestOsrmAndRender(it.sLL, endLatLng, it.name, destinationName, it.rawPrice);
         });
-    }
 
-    // Build RankInfo from Firestore snapshot (type-safe “location” handling)
-    @Nullable
-    private RankInfo toRankInfo(DocumentSnapshot doc) {
-        if (doc == null || !doc.exists()) return null;
-        LatLng ll = extractLatLngFromRank(doc);
-        String name = doc.getString("name");
-        return new RankInfo(doc.getId(), name, ll);
-    }
-
-    @Nullable
-    private LatLng extractLatLngFromRank(DocumentSnapshot doc) {
-        Object raw = doc.get("location");
-        if (raw instanceof com.google.firebase.firestore.GeoPoint) {
-            com.google.firebase.firestore.GeoPoint gp = (com.google.firebase.firestore.GeoPoint) raw;
-            return new LatLng(gp.getLatitude(), gp.getLongitude());
-        } else if (raw instanceof String) {
-            try {
-                String locStr = (String) raw; // legacy string "26.1057° S, 28.1016° E"
-                String[] parts = locStr.split(",");
-                double lat = parseDeg(parts[0]);
-                double lng = parseDeg(parts[1]);
-                return new LatLng(lat, lng);
-            } catch (Exception ignored) {}
-        }
-        Double latNum = doc.getDouble("latitude");
-        Double lngNum = doc.getDouble("longitude");
-        if (latNum != null && lngNum != null) return new LatLng(latNum, lngNum);
-        return null;
-    }
-
-    private double parseDeg(String token) {
-        token = token.trim();
-        boolean south = token.endsWith("S") || token.endsWith("s");
-        boolean west  = token.endsWith("W") || token.endsWith("w");
-        String num = token.replace("°", "").replaceAll("[NnSsEeWw]", "").trim();
-        double v = Double.parseDouble(num);
-        if (south || west) v = -v;
-        return v;
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     // Routing: OSRM with graceful errors and progress handling
@@ -489,6 +518,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             showInfoSheet("The selected route has invalid coordinates.", "OK", null, null);
             return;
         }
+
+        // Ensure only one route at a time
+        clearCurrentRouteOverlays();
 
         String url = "https://router.project-osrm.org/route/v1/driving/"
                 + start.longitude + "," + start.latitude + ";"
@@ -522,7 +554,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 if (bodyStr.contains("\"code\":\"NoRoute\"")) {
                     requireActivity().runOnUiThread(() -> {
                         showProgress(false);
-                        // Suggest a nearby start as a quick recovery
                         showInfoSheet("No drivable route found between the selected ranks. Try a nearby starting rank or adjust the destination pin.", "Choose another start",
                                 v -> findAndShowRidesToDestination(endName),
                                 "Close");
@@ -566,25 +597,58 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 points.add(p);
                 builder.include(p);
             }
-            int routeColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.routePrimary);
+            int routeColor = ContextCompat.getColor(requireContext(), R.color.routePrimary);
 
-            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(start).title(startName));
-            googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(end).title(endName));
-            googleMap.addPolyline(new com.google.android.gms.maps.model.PolylineOptions().addAll(points).width(8).color(routeColor));
+            com.google.android.gms.maps.model.Marker startMarker =
+                    googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(start).title(startName));
+            com.google.android.gms.maps.model.Marker endMarker =
+                    googleMap.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(end).title(endName));
+            if (startMarker != null) currentRouteMarkers.add(startMarker);
+            if (endMarker != null) currentRouteMarkers.add(endMarker);
+
+            currentRouteLine = googleMap.addPolyline(
+                    new com.google.android.gms.maps.model.PolylineOptions().addAll(points).width(8).color(routeColor)
+            );
+
             googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
 
-            BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
-            View v = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_route_summary, null);
-            android.widget.TextView title = v.findViewById(R.id.txtTitle);
-            android.widget.TextView line1 = v.findViewById(R.id.txtLine1);
-            android.widget.TextView line2 = v.findViewById(R.id.txtLine2);
-            android.widget.TextView line3 = v.findViewById(R.id.txtLine3);
-            title.setText(startName + " → " + endName);
-            line1.setText("ETA: " + etaText);
-            line2.setText("Distance: " + distText);
-            line3.setText(price != null ? ("Price: R" + String.format(java.util.Locale.getDefault(),"%.2f", price)) : "Price: N/A");
-            dialog.setContentView(v);
-            dialog.show();
+            BottomSheetDialog summaryDialog = new BottomSheetDialog(requireContext());
+            View sv = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_route_summary, null);
+
+            TextView titleV = sv.findViewById(R.id.txtTitle);
+            TextView chipEta = sv.findViewById(R.id.chipEta);
+            TextView chipDist = sv.findViewById(R.id.chipDistance);
+            TextView chipPrice = sv.findViewById(R.id.chipPrice);
+            TextView txtNote = sv.findViewById(R.id.txtNote);
+            Button btnBack = sv.findViewById(R.id.btnBackToOptions);
+            Button btnClose = sv.findViewById(R.id.btnClose);
+
+            titleV.setText(startName + " → " + endName);
+            chipEta.setText("ETA " + etaText);
+            chipDist.setText(distText);
+            chipPrice.setText(price != null
+                    ? "R" + String.format(Locale.getDefault(),"%.2f", price)
+                    : "N/A");
+            txtNote.setText("Tap Back to choose a different start, or Close to keep this route on the map.");
+
+            summaryDialog.setContentView(sv);
+
+            btnBack.setOnClickListener(v -> {
+                // Optional: remove preview route when going back to the list.
+                clearCurrentRouteOverlays();
+                summaryDialog.dismiss();
+                if (lastStartNames != null) {
+                    showBottomSheetWithPrices(
+                            lastStartNames, lastDestinationName, lastPriceLabels,
+                            lastStartLLs, lastEndLL, lastPricesRaw
+                    );
+                } else {
+                    showInfoSheet("Couldn’t restore options.", "OK", null, null);
+                }
+            });
+
+            btnClose.setOnClickListener(v -> summaryDialog.dismiss());
+            summaryDialog.show();
 
         } catch (Exception ignored) {
             showInfoSheet("We couldn’t process the route details. Please try again.", "Retry",
@@ -600,6 +664,46 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         int rem = minutes % 60;
         return hours + " hr " + (rem > 0 ? rem + " min" : "");
     }
+    @Nullable
+    private RankInfo toRankInfo(DocumentSnapshot doc) {
+        if (doc == null || !doc.exists()) return null;
+        LatLng ll = extractLatLngFromRank(doc);
+        String name = doc.getString("name");
+        return new RankInfo(doc.getId(), name, ll);
+    }
+
+    @Nullable
+    private LatLng extractLatLngFromRank(DocumentSnapshot doc) {
+        Object raw = doc.get("location");
+        if (raw instanceof com.google.firebase.firestore.GeoPoint) {
+            com.google.firebase.firestore.GeoPoint gp = (com.google.firebase.firestore.GeoPoint) raw;
+            return new LatLng(gp.getLatitude(), gp.getLongitude());
+        } else if (raw instanceof String) {
+            try {
+                String locStr = (String) raw; // legacy string "26.1057° S, 28.1016° E"
+                String[] parts = locStr.split(",");
+                double lat = parseDeg(parts[0]);
+                double lng = parseDeg(parts[1]);
+                return new LatLng(lat, lng);
+            } catch (Exception ignored) {}
+        }
+        Double latNum = doc.getDouble("latitude");
+        Double lngNum = doc.getDouble("longitude");
+        if (latNum != null && lngNum != null) return new LatLng(latNum, lngNum);
+        return null;
+    }
+
+    private double parseDeg(String token) {
+        token = token.trim();
+        boolean south = token.endsWith("S") || token.endsWith("s");
+        boolean west  = token.endsWith("W") || token.endsWith("w");
+        String num = token.replace("°", "").replaceAll("[NnSsEeWw]", "").trim();
+        double v = Double.parseDouble(num);
+        if (south || west) v = -v;
+        return v;
+    }
+
+
     @RequiresPermission(allOf = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     private void zoomToCurrentLocation(){
         if (googleMap == null || fusedClient == null){
@@ -612,11 +716,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
 
         try {
-            // Enable blue dot
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-            // Get current location
             fusedClient.getCurrentLocation(
                     com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
                     null
@@ -636,7 +738,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private String formatDistance(double meters) {
         if (meters < 1000) return ((int)meters) + " m";
         double km = meters / 1000.0;
-        return String.format(java.util.Locale.getDefault(),"%.1f km", km);
+        return String.format(Locale.getDefault(),"%.1f km", km);
     }
 
     // Shows/hides a blocking progress overlay; prevents repeated taps
@@ -650,9 +752,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private void showInfoSheet(String message, String primaryText, View.OnClickListener primaryAction, String secondaryText) {
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
         View v = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_info, null);
-        android.widget.TextView txt = v.findViewById(R.id.txtMessage);
-        android.widget.Button btnPrimary = v.findViewById(R.id.btnPrimary);
-        android.widget.Button btnSecondary = v.findViewById(R.id.btnSecondary);
+        TextView txt = v.findViewById(R.id.txtMessage);
+        Button btnPrimary = v.findViewById(R.id.btnPrimary);
+        Button btnSecondary = v.findViewById(R.id.btnSecondary);
 
         txt.setText(message);
 
@@ -675,6 +777,17 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         dialog.setContentView(v);
         dialog.show();
+    }
+
+    private void clearCurrentRouteOverlays() {
+        if (currentRouteLine != null) {
+            currentRouteLine.remove();
+            currentRouteLine = null;
+        }
+        for (com.google.android.gms.maps.model.Marker m : currentRouteMarkers) {
+            if (m != null) m.remove();
+        }
+        currentRouteMarkers.clear();
     }
 
     @Override public void onResume() { super.onResume(); if (mapView != null) mapView.onResume(); }

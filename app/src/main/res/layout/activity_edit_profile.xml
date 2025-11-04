@@ -82,4 +82,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/etSurname" />
+
+    <Button
+        android:id="@+id/btnChangePassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:backgroundTint="@color/headingcolor"
+        android:text="Change Password"
+        android:textColor="@color/textColor"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/btnSave"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <include layout="@layout/progress_overlay"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
