@@ -34,7 +34,6 @@ public class RegisterPage extends AppCompatActivity {
     private View progressOverlay;
 
     private EditText firstName, lastName, emailEnter, passwords, confirmPassword;
-    private Button btnRegister, btnLogin;
 
     private FirebaseFirestore db;
 
@@ -48,8 +47,8 @@ public class RegisterPage extends AppCompatActivity {
         emailEnter = findViewById(R.id.emailEnter);
         passwords = findViewById(R.id.passwords);
         confirmPassword = findViewById(R.id.confirmPassword);
-        btnRegister = findViewById(R.id.btnRegister);
-        btnLogin = findViewById(R.id.btnLogin);
+        Button btnRegister = findViewById(R.id.btnRegister);
+        Button btnLogin = findViewById(R.id.btnLogin);
         progressOverlay = findViewById(R.id.progressRoot);
 
         auth = FirebaseAuth.getInstance();

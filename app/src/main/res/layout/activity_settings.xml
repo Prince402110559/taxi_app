@@ -73,7 +73,6 @@
 
             <!-- Language -->
             <LinearLayout
-                android:id="@+id/rowLanguage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -84,7 +83,6 @@
                 android:focusable="true">
 
                 <TextView
-                    android:id="@+id/txtLanguageLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -94,7 +92,6 @@
                     android:gravity="start|center_vertical"/>
 
                 <TextView
-                    android:id="@+id/txtLanguageValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="English"

@@ -348,7 +348,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                                         double uLng = (userLoc != null) ? userLoc.getLongitude() : Double.NaN;
 
                                         class RouteOption {
-                                            String startName; LatLng startLL; Double price; float distanceMeters;
+                                            final String startName; final LatLng startLL; final Double price; final float distanceMeters;
                                             RouteOption(String n, LatLng ll, Double p, float d){ startName=n; startLL=ll; price=p; distanceMeters=d; }
                                         }
                                         List<RouteOption> opts = new ArrayList<>();

@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.databinding.ActivityEditProfileBinding;
 import com.google.firebase.auth.AuthCredential;
@@ -19,8 +19,6 @@ import java.util.Map;
 public class EditProfileActivity extends AppCompatActivity {
 
 
-    private Button saveButton;
-    private ActivityEditProfileBinding binding;
     private EditText etName,etSurname;
     private View progressOverlay;
 
@@ -31,11 +29,11 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Inflate the layout using ViewBinding
-        binding = ActivityEditProfileBinding.inflate(getLayoutInflater());
+        ActivityEditProfileBinding binding = ActivityEditProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
 
-        saveButton = findViewById(R.id.btnSave);
+        Button saveButton = findViewById(R.id.btnSave);
         etName = findViewById(R.id.etName);
         etSurname = findViewById(R.id.etSurname);
 

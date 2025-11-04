@@ -1,26 +1,18 @@
 package com.example.myapplication;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptionsExtension;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,7 +28,6 @@ import java.util.Map;
 public class LoginPage extends AppCompatActivity {
 
     private EditText emailEnter, passwords;
-    private Button btnLogin, btnRegister;
     private View progressOverlay;
 
     private FirebaseAuth auth;
@@ -50,8 +41,8 @@ public class LoginPage extends AppCompatActivity {
 
         emailEnter = findViewById(R.id.enterEmail);
         passwords  = findViewById(R.id.enterPassword);
-        btnLogin   = findViewById(R.id.btnLogin);
-        btnRegister= findViewById(R.id.btnRegister);
+        Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnRegister = findViewById(R.id.btnRegister);
         progressOverlay = findViewById(R.id.progressRoot);
 
         auth = FirebaseAuth.getInstance();

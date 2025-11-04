@@ -18,7 +18,6 @@
 
         <!-- App Icon -->
         <ImageView
-            android:id="@+id/appIcon"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/taxi_pic"
@@ -27,7 +26,6 @@
 
         <!-- App Name -->
         <TextView
-            android:id="@+id/appName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="RankMate"
@@ -38,7 +36,6 @@
 
         <!-- Version -->
         <TextView
-            android:id="@+id/appVersion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Version 1.0.0"
@@ -55,7 +52,6 @@
 
         <!-- About Text -->
         <TextView
-            android:id="@+id/aboutText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="RankMate is a South African minibus taxi companion app designed to make public transport easier and smarter. It helps passengers quickly find available taxis to their desired destination by automatically detecting their current location or allowing them to manually enter one. The app guides users to the correct taxi rank, estimates travel time, and provides fare estimates — helping you plan your trip with confidence.\n\nWhile RankMate does not allow online taxi bookings or payments yet, it serves as an essential travel guide and information hub. The built-in community forum lets passengers share updates, experiences, and ask questions, fostering communication between daily commuters.\n\nOur goal is to bring technology closer to the South African taxi industry — making travel simpler, safer, and more predictable for everyone."
@@ -72,7 +68,6 @@
 
         <!-- Developer Info -->
         <TextView
-            android:id="@+id/developerInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Developed by Group 23"
@@ -81,7 +76,6 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
-            android:id="@+id/contactEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Contact: group23Devs@gmail.com"
