@@ -48,6 +48,9 @@
         <activity
             android:name=".WelcomePage"
             android:exported="false" />
+        <activity android:name=".TermsActivity"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

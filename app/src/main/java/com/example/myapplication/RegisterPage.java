@@ -2,12 +2,18 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ClickableSpan;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -53,6 +59,11 @@ public class RegisterPage extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+
+        CheckBox cbTerms = findViewById(R.id.cbTerms);
+
+        cbTerms.setOnCheckedChangeListener((buttonView, isChecked) -> btnRegister.setEnabled(isChecked));
+
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -110,7 +121,26 @@ public class RegisterPage extends AppCompatActivity {
             googleLauncher.launch(gsc.getSignInIntent());
         });
 
+        TextView tvTerms = findViewById(R.id.tvTerms);
+        SpannableString ss = new SpannableString("Yes, I agree to the Terms of Service");
+        ClickableSpan cs = new ClickableSpan() {
+            @Override public void onClick(@NonNull View widget) {
+                startActivity(new Intent(RegisterPage.this, TermsActivity.class));
+            }
+        };
+        int start = ss.toString().indexOf("Terms of Service");
+        int end = start + "Terms of Service".length();
+        if (start >= 0) ss.setSpan(cs, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        tvTerms.setText(ss);
+        tvTerms.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+
+
         btnRegister.setOnClickListener(v -> {
+
+            if (!cbTerms.isChecked()) {
+                showInfo("Please agree to the Terms of Service to continue.");
+                return;
+            }
             String fName = firstName.getText().toString().trim();
             String lName = lastName.getText().toString().trim();
             String em = emailEnter.getText().toString().trim();

@@ -3,7 +3,123 @@
     <!-- TODO: Remove or change this placeholder text -->
     <!-- Strings used for fragments for navigation -->
     <string name="default_web_client_id">891555803625-8uu3iu8oaldmqsd0eqduf2618a6gok6l.apps.googleusercontent.com</string>
+    <string name="terms_body">
+        Terms of Service:
 
+\n
+\nBy creating an account or using RankMate, you agree to these Terms of Service. If you do not agree, do not use the app.
+
+        \n\n
+What the app does:
+\n\n
+RankMate helps you discover taxi ranks and view available routes between ranks.
+
+\n
+Prices, times, and availability are estimates and may change without notice. Always confirm with the operator on the ground.
+
+\n
+RankMate is not a taxi or transport provider and does not operate vehicles.The app does not accept ride bookings or payments and does not guarantee seat availability, departure times, or safety conditions.Your travel arrangements are between you and the taxi association/driver.
+\n\n
+Your responsibilities:
+\n\n
+Use the app safely and obey local laws, road rules, and venue instructions.
+\n
+Verify rank locations, routes, prices, and operating hours with local signage or staff.
+\n
+Keep your device and account secure. You are responsible for actions taken using your account.
+\n\n
+Accounts and eligibility:
+\n\n
+You must provide accurate information during registration.
+\n
+RankMate may suspend or terminate accounts for misuse, fraud, or violation of these Terms.
+\n
+Pricing and ETA information:
+\n\n
+Prices and ETAs are estimates derived from available data and/or community and operator inputs.
+\n
+Actual fare, timing, transfers, and routes can differ due to traffic, operating changes, weather, or association rules.
+\n
+RankMate is not responsible for differences between estimates and actual costs or travel times.
+\n\n
+Map data and locations:
+\n\n
+Map data (including pins, polylines, suggested paths) is provided for general guidance only.
+\n
+GPS accuracy may vary. Always check local signs and announcements at ranks.
+\n\n
+Safety disclaimer:
+\n\n
+Travel is at your own risk.
+\n
+RankMate does not vet drivers, vehicles, or associations and does not control their conduct.
+\n
+In an emergency, contact local authorities.
+\n\n
+Prohibited uses
+Do not:
+\n
+Interfere with the app, its servers, or security features.
+\n
+Scrape, copy, or resell route data without permission.
+\n
+Upload unlawful, harmful, or misleading content.
+\n
+Attempt to bypass access limits or rate limits.
+\n\n
+Intellectual property:
+\n\n
+RankMate and its content (code, UI, logos, data compilations) are protected by law.
+\n
+You may use the app for personal, non‑commercial purposes. Any other use requires written permission.
+\n\n
+Privacy:
+\n
+RankMate collects and uses data as described in the Privacy Policy (location, device, and basic account info as needed to provide features).
+\n
+By using the app, you consent to that data collection and processing.
+\n
+Do not share another person’s information without their consent.
+\n\n
+Third‑party services:
+\n\n
+The app may rely on third‑party services (e.g., maps, routing). Those services may have their own terms and limits and may change or become unavailable at any time.
+\n\n
+Changes to the app and terms:
+\n\n
+Features may change, be added, or removed without notice.
+\n
+RankMate may update these Terms. Continued use after changes means you accept the updated Terms.
+\n\n
+Disclaimer of warranties:
+\n\n
+The app is provided “as is” and “as available.”
+\n
+RankMate disclaims all warranties, express or implied, including accuracy, fitness for a particular purpose, and non‑infringement.
+\n
+RankMate does not warrant uninterrupted, timely, secure, or error‑free operation.
+\n\n
+Limitation of liability:
+\n
+To the maximum extent permitted by law, RankMate will not be liable for indirect, incidental, special, consequential, or exemplary damages, or for lost profits, data, or goodwill, arising from your use of the app.
+\n
+Where liability cannot be excluded, it is limited to the amount you paid to use the app (typically R0).
+\n\n
+Indemnity:
+\n\n
+You agree to defend, indemnify, and hold harmless RankMate and its team from claims arising out of your use of the app, violation of these Terms, or infringement of rights.
+\n
+Termination:
+\n\n
+You may stop using the app at any time.
+\n
+RankMate may suspend or terminate access if you violate these Terms or for security/operational reasons.
+        \n\n
+
+
+Contact:
+\n\n
+For questions or support, email: Group23Devs@gmail.com.com.</string>
 
 
 </resources>
